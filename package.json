@@ -1,0 +1,26 @@
+{
+  "name": "secure-devsecops-platform",
+  "version": "1.0.0",
+  "description": "Containerized e-commerce microservices with security-gated CI/CD, hardened Kubernetes, and runtime intrusion detection",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "prepare": "husky",
+    "lint": "echo 'Run lint in individual services'",
+    "test": "echo 'Run tests in individual services'"
+  },
+  "keywords": [
+    "devsecops",
+    "kubernetes",
+    "security",
+    "microservices",
+    "falco",
+    "cicd"
+  ],
+  "author": "Sujal Panchal",
+  "license": "MIT",
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^17.5.1"
+  }
+}
