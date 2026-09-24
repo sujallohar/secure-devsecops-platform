@@ -14,7 +14,7 @@ import { logger } from './logger.js';
 
 const { Pool } = pg;
 
-export const pool = new Pool({
+export let pool = new Pool({
   host: config.POSTGRES_HOST,
   port: config.POSTGRES_PORT,
   database: config.USERS_DB_NAME,
@@ -26,6 +26,10 @@ export const pool = new Pool({
   idleTimeoutMillis: 30000,  // close idle connections after 30s
   connectionTimeoutMillis: 5000, // fail fast if DB is unreachable
 });
+
+export function setTestPool(testPool) {
+  pool = testPool;
+}
 
 // Log pool errors (e.g. connection drops) without crashing
 pool.on('error', (err) => {

@@ -1,0 +1,13 @@
+process.env.NODE_ENV = 'test';
+process.env.PORT = '3001';
+process.env.LOG_LEVEL = 'fatal';
+process.env.POSTGRES_HOST = 'localhost';
+process.env.POSTGRES_PORT = '5432';
+process.env.USERS_DB_NAME = 'usersdb';
+process.env.USERS_DB_USER = 'user_svc';
+process.env.USERS_DB_PASSWORD = 'testpass123';
+process.env.JWT_SECRET = 'super-secret-test-key-for-jwt-signing';
+process.env.JWT_EXPIRES_IN = '15m';
+process.env.JWT_ISSUER = 'secure-devsecops-platform';
+process.env.JWT_AUDIENCE = 'secure-devsecops-platform';
+process.env.CORS_ALLOWED_ORIGINS = 'http://localhost:8080';

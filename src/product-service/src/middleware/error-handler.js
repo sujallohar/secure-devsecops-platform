@@ -15,6 +15,15 @@ export function errorHandler(err, req, res, _next) {
     url: req.originalUrl,
   }, 'Unhandled error');
 
+  if (err.name === 'ZodError' || (err.issues && Array.isArray(err.issues))) {
+    return res.status(400).json({
+      error: {
+        message: err.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join(', '),
+        ...(req.correlationId && { correlationId: req.correlationId }),
+      }
+    });
+  }
+
   const statusCode = err.statusCode || 500;
 
   res.status(statusCode).json({

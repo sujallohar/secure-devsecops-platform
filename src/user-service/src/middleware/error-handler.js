@@ -27,6 +27,17 @@ export function errorHandler(err, req, res, _next) {
     url: req.originalUrl,
   }, 'Unhandled error');
 
+  // Handle Zod validation errors gracefully — return 400
+  // instead of 500 so the client knows the input was invalid.
+  if (err.name === 'ZodError' || (err.issues && Array.isArray(err.issues))) {
+    return res.status(400).json({
+      error: {
+        message: err.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join(', '),
+        ...(req.correlationId && { correlationId: req.correlationId }),
+      },
+    });
+  }
+
   // Determine the status code: use err.statusCode if set by
   // our route handlers, otherwise default to 500.
   const statusCode = err.statusCode || 500;
@@ -44,3 +55,4 @@ export function errorHandler(err, req, res, _next) {
 
   res.status(statusCode).json(response);
 }
+

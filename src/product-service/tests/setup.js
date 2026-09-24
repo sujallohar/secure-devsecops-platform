@@ -1,0 +1,9 @@
+process.env.NODE_ENV = 'test';
+process.env.PRODUCT_SERVICE_PORT = '3002';
+process.env.LOG_LEVEL = 'fatal';
+process.env.POSTGRES_HOST = 'localhost';
+process.env.POSTGRES_PORT = '5432';
+process.env.PRODUCTS_DB_NAME = 'productsdb';
+process.env.PRODUCTS_DB_USER = 'product_svc';
+process.env.PRODUCTS_DB_PASSWORD = 'testpass123';
+process.env.CORS_ALLOWED_ORIGINS = 'http://localhost:8080';

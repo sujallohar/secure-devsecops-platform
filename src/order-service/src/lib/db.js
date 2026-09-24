@@ -11,7 +11,7 @@ import { logger } from './logger.js';
 
 const { Pool } = pg;
 
-export const pool = new Pool({
+export let pool = new Pool({
   host: config.POSTGRES_HOST,
   port: config.POSTGRES_PORT,
   database: config.ORDERS_DB_NAME,
@@ -21,6 +21,10 @@ export const pool = new Pool({
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 5000,
 });
+
+export function setTestPool(testPool) {
+  pool = testPool;
+}
 
 pool.on('error', (err) => {
   logger.error({ err }, 'Unexpected database pool error');
