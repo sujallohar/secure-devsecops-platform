@@ -34,6 +34,12 @@ function createProxy(target, pathRewrite) {
         if (req.correlationId) {
           proxyReq.setHeader('X-Correlation-ID', req.correlationId);
         }
+        if (req.headers['x-user-id']) {
+          proxyReq.setHeader('x-user-id', req.headers['x-user-id']);
+        }
+        if (req.headers['x-user-role']) {
+          proxyReq.setHeader('x-user-role', req.headers['x-user-role']);
+        }
       },
       error: (err, req, res) => {
         logger.error({ err, target }, 'Proxy error');
@@ -75,12 +81,13 @@ router.use(
 router.use(
   '/api/products',
   verifyJwt,
-  createProxy(config.PRODUCT_SERVICE_URL, { '^/api/products': '/products' })
+  createProxy(config.PRODUCT_SERVICE_URL, { '^/api/products': '' })
 );
 
 // Order routes
 router.use(
   '/api/orders',
   verifyJwt,
-  createProxy(config.ORDER_SERVICE_URL, { '^/api/orders': '/orders' })
+  createProxy(config.ORDER_SERVICE_URL, { '^/api/orders': '' })
 );
+
