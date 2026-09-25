@@ -17,6 +17,10 @@ on:
         description: 'Relative path to service directory'
         required: true
         type: string
+      service-name:
+        description: 'Service identifier for artifact naming'
+        required: false
+        type: string
       coverage-threshold:
         description: 'Minimum required test coverage percentage'
         required: false
@@ -33,7 +37,7 @@ permissions:
 
 jobs:
   build-and-test:
-    name: Build & Test (${{ inputs.service-path }})
+    name: Build & Test (${{ inputs.service-name || inputs.service-path }})
     runs-on: ubuntu-latest
 
     defaults:
@@ -64,6 +68,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
         with:
-          name: coverage-${{ inputs.service-path }}
+          name: coverage-${{ inputs.service-name || inputs.service-path }}
           path: ${{ inputs.service-path }}/coverage/
           if-no-files-found: ignore

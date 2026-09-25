@@ -1,12 +1,12 @@
 import { PostgreSqlContainer } from '@testcontainers/postgresql';
 import request from 'supertest';
 import pg from 'pg';
-import nock from 'nock';
 import { app } from '../src/app.js';
 import { setTestPool } from '../src/lib/db.js';
 
 let container;
 let testPool;
+const originalFetch = global.fetch;
 
 const FAKE_USER_A = '11111111-1111-1111-1111-111111111111';
 const FAKE_USER_B = '22222222-2222-2222-2222-222222222222';
@@ -47,42 +47,54 @@ beforeAll(async () => {
 }, 60000);
 
 afterAll(async () => {
-  nock.cleanAll();
-  nock.restore();
+  global.fetch = originalFetch;
   if (testPool) await testPool.end();
   if (container) await container.stop();
 });
 
 beforeEach(async () => {
   await testPool.query('TRUNCATE orders CASCADE');
-  nock.cleanAll();
+  global.fetch = originalFetch;
 });
 
 // Helper: mock the product-service HTTP calls for order creation
 function mockProductService(stock = 50) {
-  // Mock GET /products/:id (fetch product details)
-  nock('http://localhost:3002')
-    .get(`/products/${FAKE_PRODUCT_ID}`)
-    .reply(200, {
-      data: {
-        id: FAKE_PRODUCT_ID,
-        name: 'Test Product',
-        price: '25.00',
-        stock,
-      },
-    });
-
-  // Mock PATCH /products/:id/stock (decrement stock)
-  nock('http://localhost:3002')
-    .patch(`/products/${FAKE_PRODUCT_ID}/stock`)
-    .reply(200, {
-      data: {
-        id: FAKE_PRODUCT_ID,
-        name: 'Test Product',
-        price: '25.00',
-        stock: stock - 2,
-      },
-    });
+  global.fetch = async (url, options = {}) => {
+    const urlStr = String(url);
+    if (urlStr.endsWith(`/products/${FAKE_PRODUCT_ID}/stock`) && options.method === 'PATCH') {
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({
+          data: {
+            id: FAKE_PRODUCT_ID,
+            name: 'Test Product',
+            price: '25.00',
+            stock: stock - 2,
+          },
+        }),
+      };
+    }
+    if (urlStr.endsWith(`/products/${FAKE_PRODUCT_ID}`)) {
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({
+          data: {
+            id: FAKE_PRODUCT_ID,
+            name: 'Test Product',
+            price: '25.00',
+            stock,
+          },
+        }),
+      };
+    }
+    return {
+      ok: false,
+      status: 404,
+      json: async () => ({ error: { message: 'Not found' } }),
+    };
+  };
 }
 
 describe('Order Service - Integration & Security Tests', () => {

@@ -50,5 +50,6 @@ jobs:
     uses: ./.github/workflows/_reusable-node-ci.yml
     with:
       service-path: ${{ matrix.service.path }}
+      service-name: ${{ matrix.service.name }}
       coverage-threshold: 70
       node-version: '22'
