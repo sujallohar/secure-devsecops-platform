@@ -8,7 +8,7 @@
     "start": "node src/index.js",
     "dev": "node --watch src/index.js",
     "test": "NODE_OPTIONS='--experimental-vm-modules' jest --coverage --forceExit",
-    "lint": "eslint src/"
+    "lint": "for f in src/*.js src/**/*.js; do [ -f \"$f\" ] && node --check \"$f\"; done"
   },
   "dependencies": {
     "cors": "^2.8.5",

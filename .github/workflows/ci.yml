@@ -1,0 +1,54 @@
+# ──────────────────────────────────────────────────────────────
+# .github/workflows/ci.yml — Primary CI Pipeline
+# Purpose: Orchestrates continuous integration checks across all
+#          5 microservice components using matrix execution.
+# Security controls:
+#   - Workflow-level least-privilege permissions: contents: read
+#   - Concurrency cancellation of superseded workflow runs
+#   - Pinned actions inside called reusable workflow
+#   - Automated matrix execution over all components
+# ──────────────────────────────────────────────────────────────
+
+name: CI Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - 'feature/**'
+  pull_request:
+    branches:
+      - main
+      - develop
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  service-matrix:
+    name: ${{ matrix.service.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        service:
+          - name: api-gateway
+            path: src/api-gateway
+          - name: user-service
+            path: src/user-service
+          - name: product-service
+            path: src/product-service
+          - name: order-service
+            path: src/order-service
+          - name: frontend
+            path: src/frontend
+
+    uses: ./.github/workflows/_reusable-node-ci.yml
+    with:
+      service-path: ${{ matrix.service.path }}
+      coverage-threshold: 70
+      node-version: '22'

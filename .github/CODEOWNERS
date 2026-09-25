@@ -1,0 +1,28 @@
+# ──────────────────────────────────────────────────────────────
+# .github/CODEOWNERS
+# Purpose: Define individuals or teams that are responsible for
+#          code review and sign-off in this repository.
+# Security: Enforces mandatory review on security-sensitive paths.
+# ──────────────────────────────────────────────────────────────
+
+# Default repository maintainer for all files
+* @sujallohar
+
+# Security policies, rules, and scripts
+/security/ @sujallohar
+
+# CI/CD Workflows, hooks, and GitHub configurations
+/.github/ @sujallohar
+/.husky/ @sujallohar
+
+# Infrastructure as Code and deployment manifests
+/k8s/ @sujallohar
+/terraform/ @sujallohar
+/docker/ @sujallohar
+/db/ @sujallohar
+
+# Microservices application code
+/src/ @sujallohar
+
+# Documentation and architecture decision records
+/docs/ @sujallohar
