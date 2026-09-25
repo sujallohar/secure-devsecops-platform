@@ -1,0 +1,182 @@
+# ──────────────────────────────────────────────────────────────
+# security/semgrep/custom-rules.yaml — Project-Specific SAST Rules
+# Purpose: Custom Semgrep rules that detect insecure patterns
+#          specific to this Node.js/Express microservices platform.
+#
+# These rules supplement the community rulesets (p/javascript,
+# p/nodejs, p/owasp-top-ten, p/secrets) with project-specific
+# patterns that the generic rules might miss.
+#
+# Each rule is designed so a student can explain:
+#   - What insecure pattern it detects
+#   - Why that pattern is dangerous
+#   - How the fix looks
+# ──────────────────────────────────────────────────────────────
+
+rules:
+
+  # ────────────────────────────────────────────────────────────
+  # Rule (a): String-concatenated SQL in a database query call
+  #
+  # WHY THIS IS DANGEROUS:
+  #   When SQL is built by concatenating user input, an attacker
+  #   can inject arbitrary SQL — reading, modifying, or deleting
+  #   data they should not access (CWE-89: SQL Injection).
+  #
+  # WHAT THIS RULE DETECTS:
+  #   Any call to pool.query() or client.query() where the first
+  #   argument is a template literal containing an expression
+  #   (e.g., `SELECT * FROM users WHERE id = ${userId}`).
+  #   This catches the most common Node.js SQL injection pattern.
+  #
+  # HOW TO FIX:
+  #   Use parameterised queries:
+  #     pool.query('SELECT * FROM users WHERE id = $1', [userId])
+  # ────────────────────────────────────────────────────────────
+  - id: custom-sql-string-concatenation
+    patterns:
+      - pattern: $POOL.query(`...${...}...`)
+    message: >
+      SQL query built with template literal interpolation detected.
+      This is vulnerable to SQL injection (CWE-89). Use parameterised
+      queries instead: pool.query('SELECT ... WHERE id = $1', [value]).
+    languages: [javascript, typescript]
+    severity: ERROR
+    metadata:
+      cwe:
+        - "CWE-89: SQL Injection"
+      owasp:
+        - "A03:2021 - Injection"
+      confidence: HIGH
+      impact: HIGH
+      category: security
+      technology:
+        - nodejs
+        - express
+        - postgresql
+
+  # Also catch string concatenation with + operator
+  - id: custom-sql-string-concat-plus
+    patterns:
+      - pattern: $POOL.query($SQL + $INPUT, ...)
+    message: >
+      SQL query built with string concatenation detected. This is
+      vulnerable to SQL injection (CWE-89). Use parameterised queries
+      instead: pool.query('SELECT ... WHERE id = $1', [value]).
+    languages: [javascript, typescript]
+    severity: ERROR
+    metadata:
+      cwe:
+        - "CWE-89: SQL Injection"
+      owasp:
+        - "A03:2021 - Injection"
+      confidence: HIGH
+      impact: HIGH
+      category: security
+      technology:
+        - nodejs
+        - express
+        - postgresql
+
+  # ────────────────────────────────────────────────────────────
+  # Rule (b): child_process.exec with a non-literal argument
+  #
+  # WHY THIS IS DANGEROUS:
+  #   exec() passes its argument to a shell (/bin/sh -c). If
+  #   any part of the command string comes from user input,
+  #   an attacker can inject shell metacharacters to execute
+  #   arbitrary commands (CWE-78: OS Command Injection).
+  #
+  # WHAT THIS RULE DETECTS:
+  #   Any call to exec() where the first argument is not a
+  #   plain string literal — i.e., it involves a variable,
+  #   template literal, or concatenation.
+  #
+  # HOW TO FIX:
+  #   Use execFile() or spawn() with an array of arguments
+  #   (no shell interpretation):
+  #     execFile('/usr/bin/ls', ['-la', userPath])
+  # ────────────────────────────────────────────────────────────
+  - id: custom-exec-non-literal
+    patterns:
+      - pattern: exec($CMD, ...)
+      - pattern-not: exec("...", ...)
+    message: >
+      child_process.exec() called with a non-literal argument.
+      exec() passes the command through a shell, making it
+      vulnerable to command injection (CWE-78) if any part of
+      the argument comes from user input. Use execFile() or
+      spawn() with an argument array instead.
+    languages: [javascript, typescript]
+    severity: ERROR
+    metadata:
+      cwe:
+        - "CWE-78: OS Command Injection"
+      owasp:
+        - "A03:2021 - Injection"
+      confidence: MEDIUM
+      impact: HIGH
+      category: security
+      technology:
+        - nodejs
+
+  # Also catch exec with template literals specifically
+  - id: custom-exec-template-literal
+    pattern: exec(`...${...}...`, ...)
+    message: >
+      child_process.exec() called with a template literal containing
+      interpolated values. This is vulnerable to command injection
+      (CWE-78). Use execFile() or spawn() with an argument array.
+    languages: [javascript, typescript]
+    severity: ERROR
+    metadata:
+      cwe:
+        - "CWE-78: OS Command Injection"
+      owasp:
+        - "A03:2021 - Injection"
+      confidence: HIGH
+      impact: HIGH
+      category: security
+      technology:
+        - nodejs
+
+  # ────────────────────────────────────────────────────────────
+  # Rule (c): JWT verified without algorithm pinning
+  #
+  # WHY THIS IS DANGEROUS:
+  #   If the algorithm is not pinned during jwt.verify(), an
+  #   attacker can craft a token with "alg": "none" and bypass
+  #   signature verification entirely (CWE-327/CWE-345). This
+  #   is the classic "algorithm confusion" attack.
+  #
+  # WHAT THIS RULE DETECTS:
+  #   Any call to jwt.verify() where the options object does
+  #   not include an `algorithms` key — meaning the library
+  #   will accept whatever algorithm the token header claims.
+  #
+  # HOW TO FIX:
+  #   Always pin the algorithm:
+  #     jwt.verify(token, secret, { algorithms: ['HS256'] })
+  # ────────────────────────────────────────────────────────────
+  - id: custom-jwt-no-algorithm-pin
+    patterns:
+      - pattern: jwt.verify($TOKEN, $SECRET)
+    message: >
+      jwt.verify() called without specifying the algorithms option.
+      Without pinning the algorithm, an attacker can use the
+      "alg: none" attack to bypass signature verification (CWE-345).
+      Always specify: jwt.verify(token, secret, { algorithms: ['HS256'] }).
+    languages: [javascript, typescript]
+    severity: ERROR
+    metadata:
+      cwe:
+        - "CWE-345: Insufficient Verification of Data Authenticity"
+        - "CWE-327: Use of a Broken or Risky Cryptographic Algorithm"
+      owasp:
+        - "A02:2021 - Cryptographic Failures"
+      confidence: HIGH
+      impact: HIGH
+      category: security
+      technology:
+        - nodejs
+        - jsonwebtoken

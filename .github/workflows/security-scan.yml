@@ -1,0 +1,122 @@
+# ──────────────────────────────────────────────────────────────
+# .github/workflows/security-scan.yml — Security Scanning Pipeline
+# Purpose: Run static application security testing (SAST) using
+#          Semgrep with community and custom rulesets.
+#
+# Security controls:
+#   - Workflow-level least-privilege permissions: contents: read
+#   - Per-job widening: security-events: write for SARIF upload
+#   - Third-party actions pinned to full immutable commit SHAs
+#   - Fails on ERROR severity only; WARNING/INFO are reported
+#     but do not block the pipeline
+#
+# What Semgrep does:
+#   Semgrep is a pattern-matching SAST tool. It scans source code
+#   for known insecure patterns (SQL injection, command injection,
+#   hardcoded secrets, etc.) by matching AST patterns you define
+#   in rules. It runs fast because it does NOT build the project.
+#
+# What Semgrep CAN detect:
+#   - Code patterns that match known-bad templates (e.g., template
+#     literal SQL, exec with variables, JWT verify without alg)
+#   - Hardcoded secrets that match regex patterns
+#   - Common OWASP Top 10 vulnerabilities in source code
+#   - Dataflow within a single function (taint tracking)
+#
+# What Semgrep CANNOT detect:
+#   - Runtime vulnerabilities (requires dynamic analysis / DAST)
+#   - Logic errors and business logic flaws
+#   - Vulnerabilities in third-party dependencies (that's SCA)
+#   - Complex cross-file, cross-module data flow (limited inter-
+#     procedural analysis compared to commercial tools)
+#   - Configuration issues in deployed infrastructure
+#   - Timing attacks, race conditions, or concurrency bugs
+#   - Obfuscated code or patterns it has no rule for
+# ──────────────────────────────────────────────────────────────
+
+name: Security Scan
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - 'feature/**'
+      - 'scratch/**'
+  pull_request:
+    branches:
+      - main
+      - develop
+
+concurrency:
+  group: security-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  # ── Semgrep SAST ─────────────────────────────────────────────
+  semgrep:
+    name: Semgrep SAST
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      security-events: write   # Required to upload SARIF to Code Scanning
+
+    container:
+      # Use the official Semgrep Docker image (semgrep/semgrep-action
+      # is deprecated since April 2024). This image contains the
+      # semgrep CLI and is maintained by the Semgrep team.
+      image: semgrep/semgrep
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      # ── Run Semgrep with community + custom rulesets ──────────
+      # Rulesets used:
+      #   p/javascript   — JavaScript security patterns
+      #   p/nodejs        — Node.js-specific patterns (Express, etc.)
+      #   p/owasp-top-ten — OWASP Top 10 vulnerability patterns
+      #   p/secrets       — Hardcoded secrets detection
+      #   + our custom rules in security/semgrep/custom-rules.yaml
+      #
+      # --sarif: Output in SARIF format for GitHub Code Scanning
+      # --error: Exit with code 1 only on ERROR severity findings
+      #          (WARNING and INFO findings are reported but don't
+      #          fail the build)
+      - name: Run Semgrep scan
+        run: |
+          semgrep scan \
+            --config=p/javascript \
+            --config=p/nodejs \
+            --config=p/owasp-top-ten \
+            --config=p/secrets \
+            --config=security/semgrep/custom-rules.yaml \
+            --sarif \
+            --output=semgrep-results.sarif \
+            --severity=ERROR \
+            --error \
+            src/
+
+      # ── Upload SARIF to GitHub Code Scanning ──────────────────
+      # This makes findings visible in the repository's Security
+      # tab under "Code Scanning". SARIF (Static Analysis Results
+      # Interchange Format) is the standard format for SAST results.
+      - name: Upload SARIF to Code Scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@1190a975f95ce23525efb6a3fc21ea29567c1b52 # v3
+        with:
+          sarif_file: semgrep-results.sarif
+          category: semgrep
+
+      # ── Upload SARIF as build artifact for evidence ───────────
+      - name: Upload SARIF artifact
+        if: always()
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
+        with:
+          name: semgrep-sarif
+          path: semgrep-results.sarif
+          if-no-files-found: ignore
