@@ -50,6 +50,12 @@ Three project-specific rules in `security/semgrep/custom-rules.yaml`:
 - **ERROR severity** → build fails (security gate).
 - **WARNING / INFO severity** → reported in SARIF but does not block merge.
 
+### SARIF & Code Scanning Integration
+
+- SARIF reports are uploaded directly to GitHub Code Scanning when available (free on public repos, requires GHAS on private repos).
+- `Upload SARIF to Code Scanning` includes `continue-on-error: true` so pipelines run reliably across both private and public repositories without breaking builds when GHAS licenses are absent.
+- The SARIF file `semgrep-results.sarif` is unconditionally archived as an immutable GitHub Actions artifact (`semgrep-sarif`) for audit and compliance evidence.
+
 ## Consequences
 
 - Semgrep runs on every push and PR, adding ~30 seconds to CI time.
