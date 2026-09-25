@@ -38,6 +38,9 @@
 name: Security Scan
 
 on:
+  schedule:
+    # Nightly audit scan at 02:00 UTC to catch newly-published CVEs against unchanged code
+    - cron: '0 2 * * *'
   push:
     branches:
       - main
@@ -174,4 +177,102 @@ jobs:
           name: gitleaks-sarif
           path: gitleaks-results.sarif
           if-no-files-found: ignore
+
+  # ── npm audit SCA (Production Dependency Gating) ────────────
+  npm-audit:
+    name: npm audit (${{ matrix.service-name }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - service-path: src/api-gateway
+            service-name: api-gateway
+          - service-path: src/user-service
+            service-name: user-service
+          - service-path: src/product-service
+            service-name: product-service
+          - service-path: src/order-service
+            service-name: order-service
+          - service-path: src/frontend
+            service-name: frontend
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: ${{ matrix.service-path }}/package-lock.json
+
+      # ── Run npm audit in production mode ──────────────────────
+      # Flags:
+      #   --production (or --omit=dev): Exclude development dependencies
+      #   --audit-level=high: Fail on high and critical vulnerabilities only
+      #   --json: Capture raw audit data for artifact evidence
+      - name: Run npm audit (Production Gating)
+        working-directory: ${{ matrix.service-path }}
+        run: |
+          npm audit --production --audit-level=high --json > npm-audit-report.json || AUDIT_EXIT=$?
+          npm audit --production --audit-level=high || true
+          if [ "${AUDIT_EXIT:-0}" -ne 0 ]; then
+            echo "::error::High or critical production vulnerabilities detected in ${{ matrix.service-name }}!"
+            exit $AUDIT_EXIT
+          fi
+
+      # ── Upload npm audit JSON report artifact ─────────────────
+      - name: Upload npm audit JSON artifact
+        if: always()
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
+        with:
+          name: npm-audit-${{ matrix.service-name }}
+          path: ${{ matrix.service-path }}/npm-audit-report.json
+          if-no-files-found: ignore
+
+  # ── OSV-Scanner (Advisory Multi-Ecosystem SCA) ───────────────
+  osv-scanner:
+    name: OSV-Scanner (Advisory)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      # ── Run OSV-Scanner in advisory mode across all lockfiles ─
+      # Scans all lockfiles recursively against the OSV global database.
+      # Runs in advisory mode (reports and outputs table/json, non-blocking).
+      - name: Run OSV-Scanner (Advisory Mode)
+        run: |
+          docker run --rm \
+            -v "$GITHUB_WORKSPACE:/src" \
+            ghcr.io/google/osv-scanner:latest \
+            scan source \
+            -r /src \
+            --format json \
+            --output-file /src/osv-report.json || true
+          
+          docker run --rm \
+            -v "$GITHUB_WORKSPACE:/src" \
+            ghcr.io/google/osv-scanner:latest \
+            scan source \
+            -r /src \
+            --format table || true
+
+      # ── Upload OSV-Scanner JSON report artifact ───────────────
+      - name: Upload OSV-Scanner JSON artifact
+        if: always()
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
+        with:
+          name: osv-scanner-report
+          path: osv-report.json
+          if-no-files-found: ignore
+
 

@@ -1,0 +1,49 @@
+# ──────────────────────────────────────────────────────────────
+# security/policy/gate-config.yaml — Security Gate & SCA Policy
+# Purpose: Configuration file for dependency auditing, container
+#          image vulnerability thresholds, and CI security gates.
+#
+# Consumed by:
+#   - Phase 8: Software Composition Analysis (npm audit & OSV-Scanner)
+#   - Phase 9: Security Gate Engine (scripts/security-gate.js)
+#   - Phase 10: Trivy Image Scanning Security Gate
+# ──────────────────────────────────────────────────────────────
+
+version: "1.0.0"
+
+# ── Software Composition Analysis (SCA) Thresholds ──────────
+sca:
+  # Gating applies strictly to production dependencies (--omit=dev).
+  # DevDependencies are scanned and reported for supply chain monitoring,
+  # but do not block production builds.
+  production_only: true
+  audit_level: "high"         # Block on HIGH and CRITICAL vulnerabilities
+  fail_on_vulnerabilities: true
+
+  # Severity thresholds for npm audit gating
+  thresholds:
+    critical: 0               # Zero critical vulnerabilities permitted in production
+    high: 0                   # Zero high vulnerabilities permitted in production
+    moderate: 10              # Moderate findings reported and tracked; non-blocking
+    low: 50                   # Low findings reported and tracked; non-blocking
+
+  # OSV-Scanner configuration
+  osv_scanner:
+    mode: "advisory"          # Advisory mode: reports all lockfile findings without blocking
+    fail_on_vulnerability: false
+
+# ── Container & Trivy Gate Policy (Used by Phase 9/10 Security Gate) ───
+container_gate:
+  # Filter unfixed vulnerabilities (vulnerabilities with no upstream patch available)
+  ignore_unfixed: true
+
+  # Allowed vulnerability thresholds for passing the security gate
+  thresholds:
+    CRITICAL: 0
+    HIGH: 0
+    MEDIUM: 5
+    LOW: 20
+
+  # Enforcement behavior
+  fail_on_threshold_breach: true
+  fail_on_expired_exceptions: true
