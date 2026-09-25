@@ -1,14 +1,15 @@
 # ──────────────────────────────────────────────────────────────
 # .github/workflows/security-scan.yml — Security Scanning Pipeline
 # Purpose: Run static application security testing (SAST) using
-#          Semgrep with community and custom rulesets.
+#          Semgrep, and secret detection using Gitleaks across
+#          the entire git commit history.
 #
 # Security controls:
 #   - Workflow-level least-privilege permissions: contents: read
 #   - Per-job widening: security-events: write for SARIF upload
 #   - Third-party actions pinned to full immutable commit SHAs
-#   - Fails on ERROR severity only; WARNING/INFO are reported
-#     but do not block the pipeline
+#   - Semgrep fails on ERROR severity only; WARNING/INFO are reported
+#   - Gitleaks fails on ANY detected secret across full history (depth: 0)
 #
 # What Semgrep does:
 #   Semgrep is a pattern-matching SAST tool. It scans source code
@@ -122,3 +123,55 @@ jobs:
           name: semgrep-sarif
           path: semgrep-results.sarif
           if-no-files-found: ignore
+
+  # ── Gitleaks Secret Detection ────────────────────────────────
+  gitleaks:
+    name: Gitleaks Secret Detection
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      security-events: write   # Required to upload SARIF to Code Scanning
+      actions: read            # Required by upload-sarif to read workflow run metadata
+
+    steps:
+      - name: Checkout repository (full history)
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0       # Full history is required to detect leaked secrets in past commits
+
+      # ── Run Gitleaks scan on full git history ─────────────────
+      # Scans the entire git history using our extended config
+      # in security/gitleaks/.gitleaks.toml.
+      # Fails on ANY finding (exit code 1).
+      - name: Run Gitleaks secret scan
+        run: |
+          docker run --rm \
+            -v "$GITHUB_WORKSPACE:/repo" \
+            zricethezav/gitleaks:latest \
+            detect \
+            --source="/repo" \
+            --config="/repo/security/gitleaks/.gitleaks.toml" \
+            --report-format=sarif \
+            --report-path="/repo/gitleaks-results.sarif" \
+            --redact \
+            --verbose
+
+      # ── Upload SARIF to GitHub Code Scanning ──────────────────
+      - name: Upload Gitleaks SARIF to Code Scanning
+        if: always()
+        continue-on-error: true # Gracefully handle repositories without paid GitHub Advanced Security licenses
+        uses: github/codeql-action/upload-sarif@1190a975f95ce23525efb6a3fc21ea29567c1b52 # v3
+        with:
+          sarif_file: gitleaks-results.sarif
+          category: gitleaks
+
+      # ── Upload SARIF artifact for audit evidence ──────────────
+      - name: Upload Gitleaks SARIF artifact
+        if: always()
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
+        with:
+          name: gitleaks-sarif
+          path: gitleaks-results.sarif
+          if-no-files-found: ignore
+
