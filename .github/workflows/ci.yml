@@ -57,6 +57,12 @@ jobs:
   build-scan-matrix:
     name: Build & Scan
     needs: service-matrix
+    permissions:
+      contents: read
+      security-events: write
+      packages: write
+      id-token: write
+      attestations: write
     strategy:
       fail-fast: false
       matrix:
