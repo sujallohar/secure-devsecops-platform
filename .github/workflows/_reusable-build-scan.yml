@@ -50,7 +50,7 @@ jobs:
           echo "image_name=ghcr.io/${{ steps.repo_case.outputs.repo_lower }}-${{ inputs.service-name }}" >> $GITHUB_OUTPUT
 
       - name: Build image (No push yet)
-        uses: docker/build-push-action@4f58ea79222b3b9dc2c8bbdd6dea2738ad5fdc63 # v6.9.0
+        uses: docker/build-push-action@4f58ea79222b3b9dc2c8bbdd6debcef730109a75 # v6.9.0
         with:
           context: ${{ inputs.service-path }}
           file: ${{ inputs.service-path }}/Dockerfile
@@ -116,14 +116,14 @@ jobs:
       # --- PHASE 11: Supply Chain Artifacts (SBOM, Cosign, Provenance) ---
       
       - name: Generate SBOM (SPDX-JSON)
-        uses: anchore/sbom-action@v0
+        uses: anchore/sbom-action@f6c3d0fe42c3cf876e3462574e4c9416b5e0f07a # v0.9.0
         with:
           image: '${{ steps.vars.outputs.image_name }}:${{ steps.vars.outputs.tag }}'
           format: spdx-json
           output-file: sbom-${{ inputs.service-name }}.spdx.json
 
       - name: Generate SBOM (CycloneDX)
-        uses: anchore/sbom-action@v0
+        uses: anchore/sbom-action@f6c3d0fe42c3cf876e3462574e4c9416b5e0f07a # v0.9.0
         with:
           image: '${{ steps.vars.outputs.image_name }}:${{ steps.vars.outputs.tag }}'
           format: cyclonedx-json
@@ -138,7 +138,7 @@ jobs:
             sbom-${{ inputs.service-name }}.cyclonedx.json
 
       - name: Log in to ghcr.io
-        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -146,7 +146,7 @@ jobs:
 
       - name: Push image
         id: push
-        uses: docker/build-push-action@4f58ea79222b3b9dc2c8bbdd6dea2738ad5fdc63 # v6.9.0
+        uses: docker/build-push-action@4f58ea79222b3b9dc2c8bbdd6debcef730109a75 # v6.9.0
         with:
           context: ${{ inputs.service-path }}
           file: ${{ inputs.service-path }}/Dockerfile
@@ -155,13 +155,13 @@ jobs:
           provenance: false
 
       - name: Install Cosign
-        uses: sigstore/cosign-installer@dc72c7d5f4d10eb610b42b9d54e4bbd5e2392415 # v3.7.0
+        uses: sigstore/cosign-installer@d58896d6a1865668819e1d91763c7751a165e159 # v3.9.2
 
       - name: Sign image with Cosign
         run: cosign sign --yes ${{ steps.vars.outputs.image_name }}@${{ steps.push.outputs.digest }}
 
       - name: Attest Build Provenance
-        uses: actions/attest-build-provenance@c074443f1aee8d4aeeae555aebba3282507181b7 # v1.4.3
+        uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be # v2.4.0
         with:
           subject-name: ${{ steps.vars.outputs.image_name }}
           subject-digest: ${{ steps.push.outputs.digest }}
