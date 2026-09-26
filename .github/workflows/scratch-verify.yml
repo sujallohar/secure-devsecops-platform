@@ -27,8 +27,12 @@ jobs:
           echo "--- Cosign Verify (Signed Image) ---"
           cosign verify --certificate-oidc-issuer "https://token.actions.githubusercontent.com" --certificate-identity-regexp "https://github.com/sujallohar/.+" $IMAGE@$DIGEST
           
-          echo "--- Cosign Verify Attestation (Provenance) ---"
-          cosign verify-attestation --certificate-oidc-issuer "https://token.actions.githubusercontent.com" --certificate-identity-regexp "https://github.com/sujallohar/.+" $IMAGE@$DIGEST | jq -r '.payload' | base64 -d | jq . | head -n 30
+          echo "--- GitHub Attestation Verify (Provenance) ---"
+          gh attestation verify oci://$IMAGE@$DIGEST --owner sujallohar
           
           echo "--- Cosign Verify (Unsigned Image Failure Check) ---"
           cosign verify --certificate-oidc-issuer "https://token.actions.githubusercontent.com" --certificate-identity-regexp "https://github.com/sujallohar/.+" alpine:latest || true
+          
+          echo "--- Downloading SBOM ---"
+          gh run download 36257161909 -n sbom-api-gateway -D sbom_api
+          cat sbom_api/sbom-api-gateway.spdx.json | head -n 30
