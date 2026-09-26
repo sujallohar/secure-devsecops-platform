@@ -1,0 +1,34 @@
+name: Phase 11 Verification
+on: [workflow_dispatch]
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: read
+      id-token: write
+    steps:
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@d58896d6a1865668819e1d91763c7751a165e159 # v3.9.2
+      - name: Run Verification
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Logging into ghcr.io"
+          echo $GH_TOKEN | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          
+          IMAGE="ghcr.io/sujallohar/secure-devsecops-platform-api-gateway"
+          TAG="1.0.0-ea703fa"
+          
+          echo "Pulling image to get digest"
+          docker pull $IMAGE:$TAG
+          DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' $IMAGE:$TAG | cut -d'@' -f2)
+          echo "Digest: $DIGEST"
+          
+          echo "--- Cosign Verify (Signed Image) ---"
+          cosign verify --certificate-oidc-issuer "https://token.actions.githubusercontent.com" --certificate-identity-regexp "https://github.com/sujallohar/.+" $IMAGE@$DIGEST
+          
+          echo "--- Cosign Verify Attestation (Provenance) ---"
+          cosign verify-attestation --certificate-oidc-issuer "https://token.actions.githubusercontent.com" --certificate-identity-regexp "https://github.com/sujallohar/.+" $IMAGE@$DIGEST | jq -r '.payload' | base64 -d | jq . | head -n 30
+          
+          echo "--- Cosign Verify (Unsigned Image Failure Check) ---"
+          cosign verify --certificate-oidc-issuer "https://token.actions.githubusercontent.com" --certificate-identity-regexp "https://github.com/sujallohar/.+" alpine:latest || true
