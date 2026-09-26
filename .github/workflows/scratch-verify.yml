@@ -1,5 +1,5 @@
 name: Phase 11 Verification
-on: [workflow_dispatch]
+on: [push]
 jobs:
   verify:
     runs-on: ubuntu-latest
