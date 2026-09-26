@@ -116,7 +116,7 @@ jobs:
       # --- PHASE 11: Supply Chain Artifacts (SBOM, Cosign, Provenance) ---
       
       - name: Generate SBOM (SPDX-JSON)
-        uses: anchore/sbom-action@f6c3d0fe42c3cf876e3462574e4c9416b5e0f07a # v0.9.0
+        uses: anchore/sbom-action@006b7ce8314066bdf1765b4500370d40fa6917a3 # v0.24.2
         with:
           image: '${{ steps.vars.outputs.image_name }}:${{ steps.vars.outputs.tag }}'
           format: spdx-json
@@ -124,7 +124,7 @@ jobs:
           upload-artifact: false
 
       - name: Generate SBOM (CycloneDX)
-        uses: anchore/sbom-action@f6c3d0fe42c3cf876e3462574e4c9416b5e0f07a # v0.9.0
+        uses: anchore/sbom-action@006b7ce8314066bdf1765b4500370d40fa6917a3 # v0.24.2
         with:
           image: '${{ steps.vars.outputs.image_name }}:${{ steps.vars.outputs.tag }}'
           format: cyclonedx-json
