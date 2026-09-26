@@ -21,6 +21,7 @@
   "license": "MIT",
   "devDependencies": {
     "husky": "^9.1.7",
+    "js-yaml": "^5.4.2",
     "lint-staged": "^17.5.1"
   }
 }

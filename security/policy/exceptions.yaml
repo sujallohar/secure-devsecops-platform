@@ -1,0 +1,13 @@
+exceptions:
+  # This file documents approved exceptions for the security gate.
+  # Exceptions must have a valid future expiration date.
+  # If any exception is expired, the pipeline will fail regardless of findings.
+
+  - cve_id: "CVE-2024-TEST-FUTURE"
+    reason: "Mitigated by WAF, accepted risk until next quarter."
+    expires_on: "2030-12-31"
+
+  # Uncomment the following to test an expired exception failure
+  # - cve_id: "CVE-2023-TEST-EXPIRED"
+  #   reason: "This exception has expired and should fail the build."
+  #   expires_on: "2020-01-01"

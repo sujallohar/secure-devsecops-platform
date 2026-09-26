@@ -53,3 +53,25 @@ jobs:
       service-name: ${{ matrix.service.name }}
       coverage-threshold: 70
       node-version: '22'
+
+  build-scan-matrix:
+    name: Build & Scan
+    needs: service-matrix
+    strategy:
+      fail-fast: false
+      matrix:
+        service:
+          - name: api-gateway
+            path: src/api-gateway
+          - name: user-service
+            path: src/user-service
+          - name: product-service
+            path: src/product-service
+          - name: order-service
+            path: src/order-service
+          - name: frontend
+            path: src/frontend
+    uses: ./.github/workflows/_reusable-build-scan.yml
+    with:
+      service-path: ${{ matrix.service.path }}
+      service-name: ${{ matrix.service.name }}
