@@ -60,7 +60,7 @@ jobs:
           provenance: false # We will attest it separately
 
       - name: Run Trivy (JSON output for gate)
-        uses: aquasecurity/trivy-action@915b19bbe73b92a6cf82a1bc12b087c9a19a5fe2 # v0.28.0
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           image-ref: '${{ steps.vars.outputs.image_name }}:${{ steps.vars.outputs.tag }}'
           format: 'json'
@@ -68,7 +68,7 @@ jobs:
           scanners: 'vuln,secret,misconfig'
 
       - name: Run Trivy (SARIF output for Code Scanning)
-        uses: aquasecurity/trivy-action@915b19bbe73b92a6cf82a1bc12b087c9a19a5fe2 # v0.28.0
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           image-ref: '${{ steps.vars.outputs.image_name }}:${{ steps.vars.outputs.tag }}'
           format: 'sarif'
@@ -84,7 +84,7 @@ jobs:
           category: trivy-${{ inputs.service-name }}
 
       - name: Run Trivy (Table format for humans)
-        uses: aquasecurity/trivy-action@915b19bbe73b92a6cf82a1bc12b087c9a19a5fe2 # v0.28.0
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           image-ref: '${{ steps.vars.outputs.image_name }}:${{ steps.vars.outputs.tag }}'
           format: 'table'
