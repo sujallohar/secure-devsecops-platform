@@ -184,4 +184,16 @@ describe('API Gateway - Security Tests', () => {
       expect(res.status).not.toBe(401);
     });
   });
+
+  describe('Unmatched Routes', () => {
+    it('should return 404 JSON response with security headers for undefined routes', async () => {
+      const res = await request(app).get('/nonexistent-path');
+      expect(res.status).toBe(404);
+      expect(res.body.error.message).toBe('Not found');
+      expect(res.headers['content-security-policy']).toBeDefined();
+      expect(res.headers['permissions-policy']).toBeDefined();
+      expect(res.headers['cache-control']).toContain('no-store');
+    });
+  });
 });
+

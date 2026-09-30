@@ -92,5 +92,15 @@ app.get('/', (_req, res) => {
 // Proxy routes
 app.use('/', proxyRoutes);
 
+// 404 handler for unmatched routes (ensures JSON response and preserves hardened security headers)
+app.use((req, res) => {
+  res.status(404).json({
+    error: {
+      message: 'Not found',
+      ...(req.correlationId && { correlationId: req.correlationId }),
+    },
+  });
+});
+
 // Error handler (must be last)
 app.use(errorHandler);
