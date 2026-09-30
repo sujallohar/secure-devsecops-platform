@@ -18,8 +18,36 @@ import { router as proxyRoutes } from './routes/proxy.js';
 
 export const app = express();
 
-// Security headers
-app.use(helmet());
+// Security headers configured with hardened CSP
+// Addresses threat: XSS, clickjacking, MIME sniffing, unauthorized embedding
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      frameAncestors: ["'none'"],
+      formAction: ["'self'"],
+      scriptSrc: ["'self'"],
+      styleSrc: ["'self'"],
+      imgSrc: ["'self'", 'data:'],
+      objectSrc: ["'none'"],
+      baseUri: ["'self'"],
+    },
+  },
+  frameguard: { action: 'deny' },
+}));
+
+// Additional defense-in-depth headers
+// Addresses threat: browser hardware/sensor leakage, sensitive response caching in intermediate proxies
+app.use((_req, res, next) => {
+  res.setHeader(
+    'Permissions-Policy',
+    'camera=(), microphone=(), geolocation=(), payment=(), usb=()'
+  );
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  next();
+});
 
 // CORS allowlist
 app.use(cors({
@@ -50,6 +78,15 @@ app.get('/ready', (_req, res) => {
   // It depends on backend services being reachable, but
   // we don't check that here — a failing proxy returns 502.
   res.status(200).json({ status: 'ready', service: 'api-gateway' });
+});
+
+// Gateway info probe / root
+app.get('/', (_req, res) => {
+  res.status(200).json({
+    service: 'api-gateway',
+    status: 'operational',
+    version: '1.0.0',
+  });
 });
 
 // Proxy routes

@@ -110,7 +110,7 @@ describe('API Gateway - Security Tests', () => {
     });
   });
 
-  describe('Health Probes', () => {
+  describe('Health Probes and Root', () => {
     it('GET /health returns 200 (no auth required)', async () => {
       const res = await request(app).get('/health');
       expect(res.status).toBe(200);
@@ -121,6 +121,34 @@ describe('API Gateway - Security Tests', () => {
       const res = await request(app).get('/ready');
       expect(res.status).toBe(200);
       expect(res.body.status).toBe('ready');
+    });
+
+    it('GET / returns 200 with service information', async () => {
+      const res = await request(app).get('/');
+      expect(res.status).toBe(200);
+      expect(res.body.service).toBe('api-gateway');
+    });
+  });
+
+  describe('Security Headers', () => {
+    it('should set Content-Security-Policy with frame-ancestors none and form-action self', async () => {
+      const res = await request(app).get('/health');
+      const csp = res.headers['content-security-policy'];
+      expect(csp).toBeDefined();
+      expect(csp).toContain("frame-ancestors 'none'");
+      expect(csp).toContain("form-action 'self'");
+    });
+
+    it('should set Permissions-Policy header', async () => {
+      const res = await request(app).get('/health');
+      expect(res.headers['permissions-policy']).toBeDefined();
+      expect(res.headers['permissions-policy']).toContain('camera=()');
+    });
+
+    it('should set anti-caching headers for API responses', async () => {
+      const res = await request(app).get('/health');
+      expect(res.headers['cache-control']).toContain('no-store');
+      expect(res.headers['pragma']).toBe('no-cache');
     });
   });
 
