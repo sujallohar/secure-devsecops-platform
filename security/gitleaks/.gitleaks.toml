@@ -1,0 +1,82 @@
+# ──────────────────────────────────────────────────────────────
+# security/gitleaks/.gitleaks.toml — Project Secret Detection Rules
+# Purpose: Configure Gitleaks to scan git commit history and staged
+#          changes for exposed secrets, passwords, and tokens.
+#
+# Rules included:
+#   - Full default Gitleaks ruleset (AWS, GitHub, Slack, Private Keys, etc.)
+#   - Custom Rule 1: Project JWT Signing Secret format (min 32 chars)
+#   - Custom Rule 2: PostgreSQL connection URI with inline password
+#
+# Allowlist:
+#   - Excludes documentation, example env templates, and ephemeral test mocks.
+# ──────────────────────────────────────────────────────────────
+
+title = "Gitleaks Configuration for Secure DevSecOps Platform"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Global allowlist for documentation, example templates, and test mocks"
+paths = [
+  '''^\.env\.example$''',
+  '''(^|/)tests/''',
+  '''(^|/)docker/docker-compose.*\.ya?ml$''',
+  '''^01-ANTIGRAVITY-PROMPTS\.md$''',
+  '''(^|/)docs/'''
+]
+regexes = [
+  '''CHANGE_ME''',
+  '''super-secret-'''
+]
+
+# ──────────────────────────────────────────────────────────────
+# Custom Rule 1: Hardcoded JWT Signing Secret
+#
+# WHY THIS IS DANGEROUS:
+#   If a JWT signing secret is committed to source control, an attacker
+#   who reads the repository can forge arbitrary signed JWTs with any
+#   role (e.g., admin), completely bypassing authentication across all
+#   microservices (CWE-798: Use of Hard-coded Credentials).
+#
+# WHAT THIS DETECTS:
+#   Assignments or definitions of JWT_SECRET / secret_key with a
+#   string literal value of 32 or more characters.
+# ──────────────────────────────────────────────────────────────
+[[rules]]
+id = "project-jwt-secret"
+description = "Detected hardcoded JWT signing secret format (CWE-798)"
+regex = '''(?i)(?:jwt[_-]?(?:signing[_-]?)?secret|secret[_-]?key)\s*[:=]\s*['"]([a-zA-Z0-9_\-!@#$%^&*+=]{32,})['"]'''
+secretGroup = 1
+keywords = [
+  "jwt_secret",
+  "jwt-secret",
+  "secret_key",
+  "secret-key",
+  "jwtsecret",
+  "secretkey"
+]
+
+# ──────────────────────────────────────────────────────────────
+# Custom Rule 2: PostgreSQL Connection URI with Inline Password
+#
+# WHY THIS IS DANGEROUS:
+#   Connection strings containing credentials (postgres://user:pass@host/db)
+#   give anyone with repo access direct access to database infrastructure.
+#   In microservice architectures, connection parameters must be injected
+#   via environment variables or secret stores, never committed inline.
+#
+# WHAT THIS DETECTS:
+#   Postgres database connection URIs specifying an inline password
+#   in the standard URI format: postgres[ql]://user:password@host[:port]/db
+# ──────────────────────────────────────────────────────────────
+[[rules]]
+id = "project-postgres-inline-password"
+description = "Detected PostgreSQL connection URI with inline credentials (CWE-798)"
+regex = '''(?i)postgres(?:ql)?://[a-zA-Z0-9_.-]+:([^@\s/:]+)@[a-zA-Z0-9_.-]+(?::[0-9]+)?/[a-zA-Z0-9_.-]+'''
+secretGroup = 1
+keywords = [
+  "postgres://",
+  "postgresql://"
+]
