@@ -1,0 +1,41 @@
+# ──────────────────────────────────────────────────────────────
+# k8s/security/networkpolicies/allow-prometheus-scraping.yaml
+#
+# Threat Mitigated:
+#   - T17 (Metrics Endpoint Information Disclosure): Prevents unauthorized
+#     pods and external actors from accessing internal metrics endpoints.
+#     Only the Prometheus scraper pod in the `observability` namespace is
+#     permitted to connect to dedicated metrics ports (9090-9093).
+# ──────────────────────────────────────────────────────────────
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-prometheus-scraping
+  namespace: ecommerce
+spec:
+  podSelector:
+    matchExpressions:
+      - key: app
+        operator: In
+        values:
+          - api-gateway
+          - user-service
+          - product-service
+          - order-service
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: observability
+      ports:
+        - protocol: TCP
+          port: 9090
+        - protocol: TCP
+          port: 9091
+        - protocol: TCP
+          port: 9092
+        - protocol: TCP
+          port: 9093

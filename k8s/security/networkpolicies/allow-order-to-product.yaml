@@ -1,0 +1,51 @@
+# ──────────────────────────────────────────────────────────────
+# k8s/security/networkpolicies/allow-order-to-product.yaml
+#
+# Threat Mitigated:
+#   - Unauthorized Service-to-Service Cross-Talk: Restricts inter-service
+#     lateral communication. While order-service requires access to
+#     product-service (port 3002) for inventory/pricing verification,
+#     it has no business need to talk to user-service, frontend, etc.
+#     Similarly, product-service accepts inter-service traffic exclusively
+#     from order-service (and gateway), blocking unapproved callers.
+# ──────────────────────────────────────────────────────────────
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-order-to-product-egress
+  namespace: ecommerce
+spec:
+  podSelector:
+    matchLabels:
+      app: order-service
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: product-service
+      ports:
+        - protocol: TCP
+          port: 3002
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-product-ingress-from-order
+  namespace: ecommerce
+spec:
+  podSelector:
+    matchLabels:
+      app: product-service
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: order-service
+      ports:
+        - protocol: TCP
+          port: 3002

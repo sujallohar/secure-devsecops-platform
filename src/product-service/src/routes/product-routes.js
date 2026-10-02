@@ -12,6 +12,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { logger } from '../lib/logger.js';
 import * as Product from '../models/product.js';
+import { productsQueriedTotal } from '../lib/metrics.js';
 
 export const router = Router();
 
@@ -37,8 +38,10 @@ const uuidParamSchema = z.object({
 router.get('/', async (req, res, next) => {
   try {
     const products = await Product.findAll();
+    productsQueriedTotal.inc({ action: 'list', status: 'success' });
     res.status(200).json({ data: products });
   } catch (err) {
+    productsQueriedTotal.inc({ action: 'list', status: 'failure' });
     next(err);
   }
 });
@@ -51,13 +54,16 @@ router.get('/:id', async (req, res, next) => {
     const product = await Product.findById(id);
 
     if (!product) {
+      productsQueriedTotal.inc({ action: 'get_by_id', status: 'not_found' });
       const err = new Error('Product not found');
       err.statusCode = 404;
       throw err;
     }
 
+    productsQueriedTotal.inc({ action: 'get_by_id', status: 'success' });
     res.status(200).json({ data: product });
   } catch (err) {
+    productsQueriedTotal.inc({ action: 'get_by_id', status: 'failure' });
     next(err);
   }
 });

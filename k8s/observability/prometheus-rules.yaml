@@ -1,0 +1,26 @@
+# ──────────────────────────────────────────────────────────────
+# k8s/observability/prometheus-rules.yaml
+#
+# Alertmanager rule: Any Falco CRITICAL event in the last 5 minutes -> webhook
+# ──────────────────────────────────────────────────────────────
+
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: falco-critical-alert
+  namespace: observability
+  labels:
+    release: prometheus-stack
+spec:
+  groups:
+    - name: falco-security.rules
+      rules:
+        - alert: FalcoCriticalSecurityEvent
+          expr: sum by (rule, priority_raw, k8s_pod_name) (increase(falcosecurity_falcosidekick_falco_events_total{priority_raw=~"critical|Critical"}[5m])) > 0
+          for: 0m
+          labels:
+            severity: critical
+            priority: Critical
+          annotations:
+            summary: "Critical runtime security event detected by Falco"
+            description: "Falco rule '{{ $labels.rule }}' triggered with priority '{{ $labels.priority_raw }}' on pod {{ $labels.k8s_pod_name }}."

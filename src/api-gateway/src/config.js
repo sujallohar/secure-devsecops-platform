@@ -8,6 +8,7 @@ import { z } from 'zod';
 
 const envSchema = z.object({
   API_GATEWAY_PORT: z.coerce.number().default(3000),
+  METRICS_PORT: z.coerce.number().default(9090),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
 
   // JWT verification — must match the user-service's signing config

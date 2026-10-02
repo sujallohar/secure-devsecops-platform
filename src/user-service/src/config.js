@@ -15,6 +15,7 @@ import { z } from 'zod';
 const envSchema = z.object({
   // Server
   USER_SERVICE_PORT: z.coerce.number().default(3001),
+  METRICS_PORT: z.coerce.number().default(9091),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
 
   // Database — no defaults for credentials (security requirement)

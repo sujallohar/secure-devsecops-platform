@@ -1,0 +1,37 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: ecommerce
+
+resources:
+  - namespace.yaml
+  - service-accounts.yaml
+  - pod-disruption-budgets.yaml
+  - quota-limits.yaml
+  - postgres.yaml
+  - api-gateway.yaml
+  - user-service.yaml
+  - product-service.yaml
+  - order-service.yaml
+  - frontend.yaml
+  - ingress.yaml
+
+images:
+  - name: postgres
+    newName: kind-registry:5000/ecommerce-postgres
+    digest: sha256:5879dbed1873e4ce818933567ccb35852d4dbbe52eec3c22e522f7d2f412ee79
+  - name: api-gateway
+    newName: kind-registry:5000/api-gateway
+    digest: sha256:c49d42cf596bc73f94017c24fed98ca47c82b54fc6ba70a9c68cdf249815e45e
+  - name: user-service
+    newName: kind-registry:5000/user-service
+    digest: sha256:89399603c09336f01241120e66ffe74faa286c684f74a0548474bae751fd09fe
+  - name: product-service
+    newName: kind-registry:5000/product-service
+    digest: sha256:982b447d9024df0560887ea5e2441406f41c17bc0d9d54a1f70badf2b752341f
+  - name: order-service
+    newName: kind-registry:5000/order-service
+    digest: sha256:484b33f062339157cf91c559d170772a964b8dc06ed23a8ebed353c1da091f7e
+  - name: frontend
+    newName: kind-registry:5000/frontend
+    digest: sha256:01aa05ceb0b3c6e14648b1e0b36a6877968d21547eba03237c189af63a4d0639

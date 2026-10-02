@@ -16,6 +16,7 @@ import { z } from 'zod';
 import { config } from '../config.js';
 import { logger } from '../lib/logger.js';
 import * as Order from '../models/order.js';
+import { ordersCreatedTotal } from '../lib/metrics.js';
 
 export const router = Router();
 
@@ -126,8 +127,10 @@ router.post('/', async (req, res, next) => {
       correlationId: req.correlationId,
     }, 'Order created successfully');
 
+    ordersCreatedTotal.inc({ status: 'success' });
     res.status(201).json({ data: order });
   } catch (err) {
+    ordersCreatedTotal.inc({ status: 'failure' });
     next(err);
   }
 });

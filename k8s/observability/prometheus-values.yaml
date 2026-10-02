@@ -1,0 +1,134 @@
+# ──────────────────────────────────────────────────────────────
+# k8s/observability/prometheus-values.yaml
+#
+# Ultra-lean Helm configuration for kube-prometheus-stack
+# Tuned for local Kind cluster on MacBook Air M1 (8GB unified memory)
+# Cost: $0.00 (Self-hosted open source)
+# ──────────────────────────────────────────────────────────────
+
+defaultRules:
+  create: false
+
+# Disable node-exporter to save host CPU and memory on M1 Mac
+nodeExporter:
+  enabled: false
+
+# Disable cluster control plane monitoring not needed in local Kind
+kubeProxy:
+  enabled: false
+kubeEtcd:
+  enabled: false
+kubeControllerManager:
+  enabled: false
+kubeScheduler:
+  enabled: false
+
+prometheusOperator:
+  admissionWebhooks:
+    enabled: false
+  resources:
+    limits:
+      cpu: 300m
+      memory: 384Mi
+    requests:
+      cpu: 50m
+      memory: 128Mi
+
+prometheus:
+  prometheusSpec:
+    replicas: 1
+    retention: 6h
+    scrapeInterval: 15s
+    evaluationInterval: 15s
+    # Discover ServiceMonitors & Rules across all namespaces
+    serviceMonitorSelectorNilUsesHelmValues: false
+    serviceMonitorNamespaceSelector: {}
+    podMonitorSelectorNilUsesHelmValues: false
+    podMonitorNamespaceSelector: {}
+    ruleSelectorNilUsesHelmValues: false
+    ruleNamespaceSelector: {}
+    storageSpec:
+      emptyDir: {}
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+    probeTimeoutSeconds: 15
+
+alertmanager:
+  enabled: true
+  alertmanagerSpec:
+    replicas: 1
+    storage:
+      emptyDir: {}
+    resources:
+      requests:
+        cpu: 20m
+        memory: 32Mi
+      limits:
+        cpu: 100m
+        memory: 64Mi
+  config:
+    global:
+      resolve_timeout: 5m
+    route:
+      group_by: ['alertname', 'namespace']
+      group_wait: 10s
+      group_interval: 1m
+      repeat_interval: 1h
+      receiver: 'falco-critical-webhook'
+      routes:
+        - matchers:
+            - alertname = "FalcoCriticalSecurityEvent"
+          receiver: 'falco-critical-webhook'
+    receivers:
+      - name: 'falco-critical-webhook'
+        webhook_configs:
+          # In local cluster, routes critical alerts to Falcosidekick or a cluster webhook
+          - url: 'http://falco-falcosidekick.security.svc.cluster.local:2801/'
+            send_resolved: true
+
+grafana:
+  enabled: true
+  adminPassword: "admin"
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 300m
+      memory: 384Mi
+  grafana.ini:
+    analytics:
+      check_for_updates: false
+      check_for_plugin_updates: false
+      reporting_enabled: false
+    plugins:
+      plugin_admin_enabled: false
+    plugin.backgroundinstaller:
+      enabled: false
+  sidecar:
+    dashboards:
+      enabled: true
+      label: grafana_dashboard
+      labelValue: "1"
+      searchNamespace: ALL
+      folder: /tmp/dashboards
+    datasources:
+      enabled: false
+  additionalDataSources:
+    - name: Prometheus
+      type: prometheus
+      access: proxy
+      url: http://prometheus-stack-kube-prom-prometheus.observability.svc:9090
+      isDefault: true
+    - name: Loki
+      type: loki
+      access: proxy
+      url: http://loki.observability.svc.cluster.local:3100
+      isDefault: false
+      jsonData:
+        maxLines: 1000

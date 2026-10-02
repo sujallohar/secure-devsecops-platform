@@ -15,6 +15,7 @@ import { correlationId } from './middleware/correlation-id.js';
 import { generalLimiter } from './middleware/rate-limit.js';
 import { errorHandler } from './middleware/error-handler.js';
 import { router as proxyRoutes } from './routes/proxy.js';
+import { metricsMiddleware } from './lib/metrics.js';
 
 export const app = express();
 
@@ -59,6 +60,9 @@ app.use(cors({
 // Correlation ID for tracing
 app.use(correlationId);
 
+// Metrics collection (prom-client)
+app.use(metricsMiddleware);
+
 // General rate limiting (all routes)
 app.use(generalLimiter);
 
@@ -69,11 +73,11 @@ app.use(pinoHttp({
 }));
 
 // Health and readiness probes (no auth required)
-app.get('/health', (_req, res) => {
+app.get(['/health', '/api/health'], (_req, res) => {
   res.status(200).json({ status: 'healthy', service: 'api-gateway' });
 });
 
-app.get('/ready', (_req, res) => {
+app.get(['/ready', '/api/ready'], (_req, res) => {
   // The gateway has no database, so readiness = liveness.
   // It depends on backend services being reachable, but
   // we don't check that here — a failing proxy returns 502.

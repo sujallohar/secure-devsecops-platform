@@ -19,11 +19,12 @@ import { config } from '../config.js';
 import { verifyJwt } from '../middleware/auth.js';
 import { loginLimiter } from '../middleware/rate-limit.js';
 import { logger } from '../lib/logger.js';
+import { forwardedRequestsTotal } from '../lib/metrics.js';
 
 export const router = Router();
 
 // ── Helper: create a proxy to a backend service ─────────────
-function createProxy(target, pathRewrite) {
+function createProxy(target, pathRewrite, serviceName = 'unknown') {
   return createProxyMiddleware({
     target,
     changeOrigin: true,
@@ -41,7 +42,17 @@ function createProxy(target, pathRewrite) {
           proxyReq.setHeader('x-user-role', req.headers['x-user-role']);
         }
       },
+      proxyRes: (proxyRes) => {
+        forwardedRequestsTotal.inc({
+          target_service: serviceName,
+          status: proxyRes.statusCode ? proxyRes.statusCode.toString() : '200',
+        });
+      },
       error: (err, req, res) => {
+        forwardedRequestsTotal.inc({
+          target_service: serviceName,
+          status: '502',
+        });
         logger.error({ err, target }, 'Proxy error');
         if (!res.headersSent) {
           res.status(502).json({
@@ -58,14 +69,14 @@ function createProxy(target, pathRewrite) {
 // Registration: rate-limited but no auth required
 router.post(
   '/api/users/register',
-  createProxy(config.USER_SERVICE_URL, { '^/api/users': '' })
+  createProxy(config.USER_SERVICE_URL, { '^/api/users': '' }, 'user-service')
 );
 
 // Login: stricter rate limit, no auth required
 router.post(
   '/api/users/login',
   loginLimiter,
-  createProxy(config.USER_SERVICE_URL, { '^/api/users': '' })
+  createProxy(config.USER_SERVICE_URL, { '^/api/users': '' }, 'user-service')
 );
 
 // ── Authenticated routes ────────────────────────────────────
@@ -74,20 +85,20 @@ router.post(
 router.use(
   '/api/users',
   verifyJwt,
-  createProxy(config.USER_SERVICE_URL, { '^/api/users': '' })
+  createProxy(config.USER_SERVICE_URL, { '^/api/users': '' }, 'user-service')
 );
 
 // Product routes
 router.use(
   '/api/products',
   verifyJwt,
-  createProxy(config.PRODUCT_SERVICE_URL, { '^/api/products': '' })
+  createProxy(config.PRODUCT_SERVICE_URL, { '^/api/products': '' }, 'product-service')
 );
 
 // Order routes
 router.use(
   '/api/orders',
   verifyJwt,
-  createProxy(config.ORDER_SERVICE_URL, { '^/api/orders': '' })
+  createProxy(config.ORDER_SERVICE_URL, { '^/api/orders': '' }, 'order-service')
 );
 

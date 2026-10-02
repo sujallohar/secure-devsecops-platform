@@ -17,6 +17,7 @@ import { checkDbHealth } from './lib/db.js';
 import { correlationId } from './middleware/correlation-id.js';
 import { errorHandler } from './middleware/error-handler.js';
 import { router as userRoutes } from './routes/user-routes.js';
+import { metricsMiddleware } from './lib/metrics.js';
 
 export const app = express();
 
@@ -50,6 +51,9 @@ app.use(express.json({ limit: '10kb' }));
 
 // Correlation ID for distributed tracing
 app.use(correlationId);
+
+// Metrics collection (prom-client)
+app.use(metricsMiddleware);
 
 // Structured HTTP request logging with pino
 app.use(pinoHttp({

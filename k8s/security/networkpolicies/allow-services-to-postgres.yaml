@@ -1,0 +1,62 @@
+# ──────────────────────────────────────────────────────────────
+# k8s/security/networkpolicies/allow-services-to-postgres.yaml
+#
+# Threat Mitigated:
+#   - Direct Database Exfiltration / Compromise: Database port 5432
+#     is the ultimate target of attackers. This policy guarantees that
+#     ONLY legitimate backend business services (user-service,
+#     product-service, order-service) can initiate connections to postgres.
+#   - Frontend/Gateway Database Access Blocked: Directly prevents the
+#     frontend pod and API gateway pod from connecting to postgres:5432,
+#     preventing compromised edge containers from executing SQL commands.
+# ──────────────────────────────────────────────────────────────
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-services-to-postgres-egress
+  namespace: ecommerce
+spec:
+  podSelector:
+    matchExpressions:
+      - key: app
+        operator: In
+        values:
+          - user-service
+          - product-service
+          - order-service
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: postgres
+      ports:
+        - protocol: TCP
+          port: 5432
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-postgres-ingress-from-services
+  namespace: ecommerce
+spec:
+  podSelector:
+    matchLabels:
+      app: postgres
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchExpressions:
+              - key: app
+                operator: In
+                values:
+                  - user-service
+                  - product-service
+                  - order-service
+      ports:
+        - protocol: TCP
+          port: 5432

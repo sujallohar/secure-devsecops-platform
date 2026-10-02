@@ -9,6 +9,7 @@ import { z } from 'zod';
 
 const envSchema = z.object({
   ORDER_SERVICE_PORT: z.coerce.number().default(3003),
+  METRICS_PORT: z.coerce.number().default(9093),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
 
   POSTGRES_HOST: z.string().min(1, 'POSTGRES_HOST is required'),

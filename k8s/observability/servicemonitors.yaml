@@ -1,0 +1,47 @@
+# ──────────────────────────────────────────────────────────────
+# k8s/observability/servicemonitors.yaml
+#
+# ServiceMonitors for Prometheus Operator to scrape:
+# 1. 4 Node.js microservices in namespace `ecommerce` (ports 9090-9093)
+# 2. Falcosidekick runtime security metrics in `security` (port 2801)
+# ──────────────────────────────────────────────────────────────
+
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: ecommerce-microservices
+  namespace: ecommerce
+  labels:
+    release: prometheus-stack
+spec:
+  selector:
+    matchExpressions:
+      - key: app
+        operator: In
+        values:
+          - api-gateway
+          - user-service
+          - product-service
+          - order-service
+  endpoints:
+    - port: metrics
+      path: /metrics
+      interval: 15s
+      scrapeTimeout: 10s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: falcosidekick
+  namespace: security
+  labels:
+    release: prometheus-stack
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: falcosidekick
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 15s
+      scrapeTimeout: 10s

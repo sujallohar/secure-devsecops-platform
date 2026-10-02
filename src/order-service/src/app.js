@@ -13,6 +13,7 @@ import { checkDbHealth } from './lib/db.js';
 import { correlationId } from './middleware/correlation-id.js';
 import { errorHandler } from './middleware/error-handler.js';
 import { router as orderRoutes } from './routes/order-routes.js';
+import { metricsMiddleware } from './lib/metrics.js';
 
 export const app = express();
 
@@ -24,6 +25,7 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '10kb' }));
 app.use(correlationId);
+app.use(metricsMiddleware);
 app.use(pinoHttp({
   logger,
   customProps: (req) => ({ correlationId: req.correlationId }),

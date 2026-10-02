@@ -15,6 +15,7 @@ import { z } from 'zod';
 import { config } from '../config.js';
 import { logger } from '../lib/logger.js';
 import * as User from '../models/user.js';
+import { userRegistrationsTotal } from '../lib/metrics.js';
 
 export const router = Router();
 
@@ -66,6 +67,8 @@ router.post('/register', async (req, res, next) => {
     logger.info({ userId: user.id, correlationId: req.correlationId },
       'User registered successfully');
 
+    userRegistrationsTotal.inc({ role: user.role, status: 'success' });
+
     // Return created user without password
     res.status(201).json({
       data: {
@@ -76,6 +79,7 @@ router.post('/register', async (req, res, next) => {
       },
     });
   } catch (err) {
+    userRegistrationsTotal.inc({ role: 'customer', status: 'failure' });
     next(err);
   }
 });

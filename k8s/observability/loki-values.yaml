@@ -1,0 +1,45 @@
+# ──────────────────────────────────────────────────────────────
+# k8s/observability/loki-values.yaml
+#
+# Ultra-lean configuration for Loki + Promtail log shipping
+# Ships both container application logs and Falco security alerts
+# Tuned for M1 8GB RAM local Kind cluster
+# Cost: $0.00
+# ──────────────────────────────────────────────────────────────
+
+loki:
+  enabled: true
+  replicas: 1
+  persistence:
+    enabled: false
+  config:
+    auth_enabled: false
+    table_manager:
+      retention_deletes_enabled: true
+      retention_period: 6h
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 192Mi
+
+promtail:
+  enabled: true
+  resources:
+    requests:
+      cpu: 20m
+      memory: 32Mi
+    limits:
+      cpu: 100m
+      memory: 64Mi
+
+grafana:
+  enabled: false
+prometheus:
+  enabled: false
+filebeat:
+  enabled: false
+logstash:
+  enabled: false

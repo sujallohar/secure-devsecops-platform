@@ -1,0 +1,76 @@
+driver:
+  kind: modern_ebpf
+
+resources:
+  requests:
+    cpu: 30m
+    memory: 128Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi
+
+nodeSelector:
+  kubernetes.io/hostname: secure-cluster-worker
+
+falco:
+  json_output: true
+  stdout_output:
+    enabled: true
+  file_output:
+    enabled: false
+
+falcosidekick:
+  enabled: true
+  resources:
+    requests:
+      cpu: 20m
+      memory: 64Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi
+  config:
+    loki:
+      hostport: http://loki.observability.svc.cluster.local:3100
+      checkcert: false
+      minimumpriority: notice
+  webui:
+    enabled: false
+
+customRules:
+  custom-rules.yaml: |-
+    - rule: Unexpected Outbound Connection from Product Service
+      desc: Detects unexpected network connections initiated from product-service to unauthorized destinations
+      condition: >
+        evt.type = connect and
+        (k8s.pod.label[app] = "product-service" or container.name = "product-service") and
+        not (fd.sip = "127.0.0.1" or fd.sport in (3002)) and
+        not (fd.rip in ("10.96.0.10", "127.0.0.1") or fd.rport in (53, 5432))
+      output: >
+        Unexpected outbound connection from product-service
+        (pod=%k8s.pod.name container=%container.name ip=%fd.rip port=%fd.rport proto=%fd.l4proto cmdline=%proc.cmdline)
+      priority: WARNING
+      tags: [network, mitre_lateral_movement, ecommerce]
+
+    - rule: Package Manager Execution In Ecommerce Container
+      desc: Detects package managers executed inside production ecommerce containers
+      condition: >
+        spawned_process and
+        (k8s.ns.name = "ecommerce" or container.name in (api-gateway, user-service, product-service, order-service, frontend)) and
+        proc.name in (apk, apt, apt-get, dpkg, yum, dnf, rpm, pacman)
+      output: >
+        Package manager executed inside container
+        (user=%user.name user_uid=%user.uid command=%proc.cmdline container=%container.name pod=%k8s.pod.name namespace=%k8s.ns.name)
+      priority: CRITICAL
+      tags: [filesystem, software_install, mitre_persistence, ecommerce]
+
+    - rule: Interactive Shell Spawned In Ecommerce Container
+      desc: Detects interactive shell execution inside ecommerce production containers
+      condition: >
+        spawned_process and
+        (k8s.ns.name = "ecommerce" or container.name in (api-gateway, user-service, product-service, order-service, frontend)) and
+        proc.name in (sh, bash, ash, zsh, csh)
+      output: >
+        Interactive shell spawned inside container
+        (user=%user.name command=%proc.cmdline container=%container.name pod=%k8s.pod.name namespace=%k8s.ns.name parent=%proc.pname)
+      priority: CRITICAL
+      tags: [process, shell, mitre_execution, ecommerce]
