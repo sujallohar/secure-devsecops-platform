@@ -18,22 +18,23 @@
 
 ## Part 2: Quick Start on Friend's Laptop
 
-### 🚀 Instant Demo (No Docker Required!)
-To present immediately to faculty or evaluators without starting heavy background processes:
+### 🚀 Master 1-Click Demo Launcher (Recommended)
+On your friend's laptop, open the terminal in the unzipped project folder and run:
+```bash
+./scripts/launch-demo.sh
+```
+This gives you an **interactive menu**:
+* **Option 1:** Spin up the **complete live Docker microservices stack** (Frontend + API Gateway + 3 Microservices + PostgreSQL). It automatically opens `http://localhost:8080` in Chrome!
+* **Option 2:** Open the **Interactive Showcase Web Dashboard** (`showcase/index.html`) — zero CPU/RAM required!
+* **Option 3:** Run all **5 Phase 19 Attack Demonstrations** with real-time logs.
+* **Option 4:** Stop all running containers to cool down the laptop immediately.
 
-1. Unzip the project folder on the laptop.
-2. Open the **Interactive Showcase Web Dashboard**:
-   ```bash
-   open showcase/index.html
-   # Or simply double-click showcase/index.html in Finder / File Explorer
-   ```
-3. **What this gives you:**
-   - An interactive visual topology map of all 5 microservices, databases, and network tiers.
-   - Interactive simulators for the 4 security gates.
-   - Interactive live simulators for all 5 Phase 19 attack scenarios with real-time terminal output.
-   - The full 18-point STRIDE Threat Matrix (T01 - T18) with filterable categories.
-   - The Phase 18 AWS Cloud IaC ledger proving ₹0 spend.
-   - The forensic evidence vault with timestamped scanner logs.
+---
+
+### 🌐 Instant Zero-Install Demo (No Docker Required!)
+To present to faculty without running any containers or installing any tools:
+1. Double-click `showcase/index.html` (or run `open showcase/index.html`).
+2. Walk the faculty through the live architecture map, trigger the attack simulations, and show the audit ledger.
 
 ---
 
