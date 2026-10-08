@@ -24,7 +24,9 @@ paths = [
   '''(^|/)tests/''',
   '''(^|/)docker/docker-compose.*\.ya?ml$''',
   '''^01-ANTIGRAVITY-PROMPTS\.md$''',
-  '''(^|/)docs/'''
+  '''(^|/)docs/''',
+  '''(^|/)scripts/demo/''',
+  '''(^|/)showcase/'''
 ]
 regexes = [
   '''CHANGE_ME''',
