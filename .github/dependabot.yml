@@ -1,0 +1,135 @@
+# ──────────────────────────────────────────────────────────────
+# .github/dependabot.yml — Automated Dependency Updates
+# Purpose: Maintain automated security updates across npm, docker,
+#          and GitHub Actions ecosystems.
+# Security:
+#   - Pinned digests/commit SHAs are monitored for updates
+#   - Schedule set to daily/weekly checks
+#   - Covers all 5 service directories, root, and GitHub Actions
+# ──────────────────────────────────────────────────────────────
+
+version: 2
+updates:
+  # ── GitHub Actions Ecosystem ─────────────────────────────────
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "ci(actions)"
+    labels:
+      - "dependencies"
+      - "github-actions"
+    open-pull-requests-limit: 10
+
+  # ── Docker Ecosystem ─────────────────────────────────────────
+  - package-ecosystem: "docker"
+    directory: "/src/user-service"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "build(docker)"
+    labels:
+      - "dependencies"
+      - "docker"
+
+  - package-ecosystem: "docker"
+    directory: "/src/product-service"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "build(docker)"
+    labels:
+      - "dependencies"
+      - "docker"
+
+  - package-ecosystem: "docker"
+    directory: "/src/order-service"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "build(docker)"
+    labels:
+      - "dependencies"
+      - "docker"
+
+  - package-ecosystem: "docker"
+    directory: "/src/api-gateway"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "build(docker)"
+    labels:
+      - "dependencies"
+      - "docker"
+
+  - package-ecosystem: "docker"
+    directory: "/src/frontend"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "build(docker)"
+    labels:
+      - "dependencies"
+      - "docker"
+
+  # ── npm Ecosystem (All 5 components + Root) ──────────────────
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "chore(deps)"
+    labels:
+      - "dependencies"
+      - "root"
+
+  - package-ecosystem: "npm"
+    directory: "/src/user-service"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "fix(deps)"
+    labels:
+      - "dependencies"
+      - "user-service"
+
+  - package-ecosystem: "npm"
+    directory: "/src/product-service"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "fix(deps)"
+    labels:
+      - "dependencies"
+      - "product-service"
+
+  - package-ecosystem: "npm"
+    directory: "/src/order-service"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "fix(deps)"
+    labels:
+      - "dependencies"
+      - "order-service"
+
+  - package-ecosystem: "npm"
+    directory: "/src/api-gateway"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "fix(deps)"
+    labels:
+      - "dependencies"
+      - "api-gateway"
+
+  - package-ecosystem: "npm"
+    directory: "/src/frontend"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "fix(deps)"
+    labels:
+      - "dependencies"
+      - "frontend"

@@ -1,0 +1,152 @@
+# ──────────────────────────────────────────────────────────────
+# docker/docker-compose.test.yml — Ephemeral CI/DAST Test Stack
+# Purpose: Ephemeral multi-service stack for integration testing,
+#          smoke testing, and OWASP ZAP DAST scanning in CI.
+# Differences from local dev:
+#   - Ephemeral postgres (anonymous volume for clean state)
+#   - Relaxed rate limits so security scanners and automated test
+#     suites are not artificially throttled
+#   - Fast startup & teardown (docker compose down -v)
+# ──────────────────────────────────────────────────────────────
+
+services:
+  postgres:
+    image: postgres:16-alpine@sha256:721873c34ceb9f8d8fc265984940dc982404c105f19ad51be9fdc5970a6080ea
+    environment:
+      POSTGRES_USER: test_admin
+      POSTGRES_PASSWORD: test_admin_password_12345
+      POSTGRES_DB: postgres
+      USERS_DB_PASSWORD: test_users_password_12345
+      PRODUCTS_DB_PASSWORD: test_products_password_12345
+      ORDERS_DB_PASSWORD: test_orders_password_12345
+    volumes:
+      - ../db/init:/docker-entrypoint-initdb.d:ro
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U test_admin -d postgres"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    networks:
+      - test-net
+
+  user-service:
+    build:
+      context: ../src/user-service
+      dockerfile: Dockerfile
+    image: secure-user-service:test
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      USER_SERVICE_PORT: 3001
+      NODE_ENV: test
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      USERS_DB_NAME: usersdb
+      USERS_DB_USER: user_svc
+      USERS_DB_PASSWORD: test_users_password_12345
+      JWT_SECRET: super-secret-ephemeral-ci-test-signing-key-32chars
+      JWT_ISSUER: secure-devsecops-platform
+      JWT_AUDIENCE: secure-devsecops-platform
+      JWT_EXPIRY: 15m
+      LOG_LEVEL: fatal
+      CORS_ALLOWED_ORIGINS: http://localhost:8080,http://localhost:3000
+    networks:
+      - test-net
+
+  product-service:
+    build:
+      context: ../src/product-service
+      dockerfile: Dockerfile
+    image: secure-product-service:test
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PRODUCT_SERVICE_PORT: 3002
+      NODE_ENV: test
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      PRODUCTS_DB_NAME: productsdb
+      PRODUCTS_DB_USER: product_svc
+      PRODUCTS_DB_PASSWORD: test_products_password_12345
+      LOG_LEVEL: fatal
+      CORS_ALLOWED_ORIGINS: http://localhost:8080,http://localhost:3000
+    networks:
+      - test-net
+
+  order-service:
+    build:
+      context: ../src/order-service
+      dockerfile: Dockerfile
+    image: secure-order-service:test
+    depends_on:
+      postgres:
+        condition: service_healthy
+      product-service:
+        condition: service_started
+    environment:
+      ORDER_SERVICE_PORT: 3003
+      NODE_ENV: test
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      ORDERS_DB_NAME: ordersdb
+      ORDERS_DB_USER: order_svc
+      ORDERS_DB_PASSWORD: test_orders_password_12345
+      PRODUCT_SERVICE_URL: http://product-service:3002
+      LOG_LEVEL: fatal
+      CORS_ALLOWED_ORIGINS: http://localhost:8080,http://localhost:3000
+    networks:
+      - test-net
+
+  api-gateway:
+    build:
+      context: ../src/api-gateway
+      dockerfile: Dockerfile
+    image: secure-api-gateway:test
+    ports:
+      - "3000:3000"
+    depends_on:
+      user-service:
+        condition: service_started
+      product-service:
+        condition: service_started
+      order-service:
+        condition: service_started
+    environment:
+      API_GATEWAY_PORT: 3000
+      NODE_ENV: test
+      JWT_SECRET: super-secret-ephemeral-ci-test-signing-key-32chars
+      JWT_ISSUER: secure-devsecops-platform
+      JWT_AUDIENCE: secure-devsecops-platform
+      USER_SERVICE_URL: http://user-service:3001
+      PRODUCT_SERVICE_URL: http://product-service:3002
+      ORDER_SERVICE_URL: http://order-service:3003
+      RATE_LIMIT_WINDOW_MS: 60000
+      RATE_LIMIT_MAX_REQUESTS: 10000
+      LOGIN_RATE_LIMIT_WINDOW_MS: 60000
+      LOGIN_RATE_LIMIT_MAX_REQUESTS: 1000
+      LOG_LEVEL: fatal
+      CORS_ALLOWED_ORIGINS: http://localhost:8080,http://localhost:3000
+    networks:
+      - test-net
+
+  frontend:
+    build:
+      context: ../src/frontend
+      dockerfile: Dockerfile
+    image: secure-frontend:test
+    ports:
+      - "8080:8080"
+    depends_on:
+      api-gateway:
+        condition: service_started
+    networks:
+      - test-net
+
+networks:
+  test-net:
+    driver: bridge

@@ -1,0 +1,75 @@
+# ──────────────────────────────────────────────────────────────
+# k8s/security/networkpolicies/allow-gateway-to-services.yaml
+#
+# Threat Mitigated:
+#   - Unauthorized Backend Access & Authentication Bypass: Restricts
+#     inbound HTTP access to backend microservices (user-service,
+#     product-service, order-service) strictly to the API Gateway.
+#     Prevents external or frontend tiers from directly hitting internal
+#     business APIs without gateway rate-limiting, CORS, and auth checks.
+#   - Gateway Compromise Containment: Restricts gateway egress exclusively
+#     to designated backend microservice ports (3001, 3002, 3003).
+# ──────────────────────────────────────────────────────────────
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-gateway-egress-to-services
+  namespace: ecommerce
+spec:
+  podSelector:
+    matchLabels:
+      app: api-gateway
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: user-service
+      ports:
+        - protocol: TCP
+          port: 3001
+    - to:
+        - podSelector:
+            matchLabels:
+              app: product-service
+      ports:
+        - protocol: TCP
+          port: 3002
+    - to:
+        - podSelector:
+            matchLabels:
+              app: order-service
+      ports:
+        - protocol: TCP
+          port: 3003
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-services-ingress-from-gateway
+  namespace: ecommerce
+spec:
+  podSelector:
+    matchExpressions:
+      - key: app
+        operator: In
+        values:
+          - user-service
+          - product-service
+          - order-service
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: api-gateway
+      ports:
+        - protocol: TCP
+          port: 3001
+        - protocol: TCP
+          port: 3002
+        - protocol: TCP
+          port: 3003

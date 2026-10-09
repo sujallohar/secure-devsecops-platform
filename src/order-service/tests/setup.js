@@ -1,0 +1,10 @@
+process.env.NODE_ENV = 'test';
+process.env.ORDER_SERVICE_PORT = '3003';
+process.env.LOG_LEVEL = 'fatal';
+process.env.POSTGRES_HOST = 'localhost';
+process.env.POSTGRES_PORT = '5432';
+process.env.ORDERS_DB_NAME = 'ordersdb';
+process.env.ORDERS_DB_USER = 'order_svc';
+process.env.ORDERS_DB_PASSWORD = 'testpass123';
+process.env.PRODUCT_SERVICE_URL = 'http://localhost:3002/products';
+process.env.CORS_ALLOWED_ORIGINS = 'http://localhost:8080';

@@ -1,0 +1,14 @@
+process.env.NODE_ENV = 'test';
+process.env.API_GATEWAY_PORT = '3000';
+process.env.LOG_LEVEL = 'fatal';
+process.env.JWT_SECRET = 'super-secret-test-key-for-jwt-signing';
+process.env.JWT_ISSUER = 'secure-devsecops-platform';
+process.env.JWT_AUDIENCE = 'secure-devsecops-platform';
+process.env.USER_SERVICE_URL = 'http://localhost:3001';
+process.env.PRODUCT_SERVICE_URL = 'http://localhost:3002';
+process.env.ORDER_SERVICE_URL = 'http://localhost:3003';
+process.env.RATE_LIMIT_WINDOW_MS = '900000';
+process.env.RATE_LIMIT_MAX_REQUESTS = '1000'; // high for tests
+process.env.LOGIN_RATE_LIMIT_WINDOW_MS = '900000';
+process.env.LOGIN_RATE_LIMIT_MAX_REQUESTS = '1000';
+process.env.CORS_ALLOWED_ORIGINS = 'http://localhost:8080';

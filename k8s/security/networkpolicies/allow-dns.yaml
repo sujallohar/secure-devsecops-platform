@@ -1,0 +1,37 @@
+# ──────────────────────────────────────────────────────────────
+# k8s/security/networkpolicies/allow-dns.yaml
+#
+# Threat Mitigated:
+#   - Denial of Service (DoS) & Service Discovery Paralysis: In Kubernetes,
+#     pods depend entirely on CoreDNS (kube-dns) to resolve service names
+#     (e.g., 'postgres', 'user-service'). Without explicit egress permission
+#     to DNS on UDP/TCP port 53, the default-deny policy blocks all name
+#     lookups. Microservices immediately fail to resolve database and API
+#     endpoints, causing cascading application failure across the entire cluster.
+#   - Uncontrolled DNS Tunneling / Exfiltration: By scoping DNS egress
+#     strictly to the cluster's internal CoreDNS pods in 'kube-system',
+#     this policy prevents pods from contacting rogue external DNS resolvers.
+# ──────────────────────────────────────────────────────────────
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns
+  namespace: ecommerce
+spec:
+  podSelector: {}
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53

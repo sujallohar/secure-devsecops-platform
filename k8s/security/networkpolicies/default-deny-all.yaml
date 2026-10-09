@@ -1,0 +1,22 @@
+# ──────────────────────────────────────────────────────────────
+# k8s/security/networkpolicies/default-deny-all.yaml
+#
+# Threat Mitigated:
+#   - Lateral Movement: Prevents an attacker who compromises one pod
+#     from freely scanning or attacking other pods in the namespace.
+#   - Unauthorized Data Exfiltration & C2: Blocks all outbound traffic
+#     to external Command and Control (C2) servers or cloud metadata.
+#   - Unauthenticated Internal Probing: Establishes a zero-trust
+#     default-deny baseline requiring explicit whitelisting for any flow.
+# ──────────────────────────────────────────────────────────────
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: ecommerce
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress

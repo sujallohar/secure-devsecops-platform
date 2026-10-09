@@ -1,0 +1,88 @@
+# ──────────────────────────────────────────────────────────────
+# .github/workflows/iac-scan.yml
+#
+# Static security scanner for Infrastructure as Code.
+# Runs `trivy config` over terraform/ and k8s/ directories,
+# failing the build on HIGH or CRITICAL misconfigurations.
+#
+# This workflow scans static HCL and YAML files only.
+# It does NOT provision any infrastructure. Cost: $0.00.
+# ──────────────────────────────────────────────────────────────
+
+name: IaC Security Scan
+
+on:
+  push:
+    paths:
+      - 'terraform/**'
+      - 'k8s/**'
+      - '.github/workflows/iac-scan.yml'
+  pull_request:
+    paths:
+      - 'terraform/**'
+      - 'k8s/**'
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  trivy-config-scan:
+    name: Trivy IaC Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # ── Scan Terraform files ───────────────────────────────
+      - name: Scan Terraform configurations
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: config
+          scan-ref: terraform/optional-aws/
+          severity: HIGH,CRITICAL
+          exit-code: 1
+          format: table
+          output: trivy-terraform-results.txt
+
+      # ── Scan Kubernetes manifests ──────────────────────────
+      - name: Scan Kubernetes manifests
+        uses: aquasecurity/trivy-action@0.28.0
+        if: always()
+        with:
+          scan-type: config
+          scan-ref: k8s/
+          severity: HIGH,CRITICAL
+          exit-code: 1
+          format: table
+          output: trivy-k8s-results.txt
+
+      # ── Upload scan results as artifacts ───────────────────
+      - name: Upload Trivy scan results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: trivy-iac-scan-results
+          path: |
+            trivy-terraform-results.txt
+            trivy-k8s-results.txt
+          retention-days: 30
+
+      # ── Upload SARIF to GitHub Security tab ────────────────
+      - name: Scan Terraform (SARIF)
+        uses: aquasecurity/trivy-action@0.28.0
+        if: always()
+        with:
+          scan-type: config
+          scan-ref: terraform/optional-aws/
+          severity: HIGH,CRITICAL
+          exit-code: 0
+          format: sarif
+          output: trivy-iac.sarif
+
+      - name: Upload SARIF to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: trivy-iac.sarif
+          category: iac-trivy

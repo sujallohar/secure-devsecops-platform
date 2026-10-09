@@ -1,0 +1,179 @@
+# ──────────────────────────────────────────────────────────────
+# docker/docker-compose.yml — Local Development Microservice Stack
+# Purpose: Orchestrates PostgreSQL 16 and all five microservices
+#          for end-to-end integration and demonstration.
+# Security:
+#   - Pinned postgres image digest
+#   - Least-privilege per-service database roles and schemas
+#   - Dedicated bridge network with internal service isolation
+#   - Only API Gateway (port 3000) and Frontend (port 8080)
+#     are published to host; internal services communicate via
+#     Docker DNS
+# ──────────────────────────────────────────────────────────────
+
+services:
+  # ── Central PostgreSQL Instance ─────────────────────────────
+  postgres:
+    image: postgres:16-alpine@sha256:721873c34ceb9f8d8fc265984940dc982404c105f19ad51be9fdc5970a6080ea
+    container_name: secure-postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-admin_secure_master_password_123}
+      POSTGRES_DB: ${POSTGRES_DB:-postgres}
+      USERS_DB_PASSWORD: ${USERS_DB_PASSWORD:-users_svc_secure_pass_456}
+      PRODUCTS_DB_PASSWORD: ${PRODUCTS_DB_PASSWORD:-products_svc_secure_pass_789}
+      ORDERS_DB_PASSWORD: ${ORDERS_DB_PASSWORD:-orders_svc_secure_pass_321}
+    volumes:
+      - ../db/init:/docker-entrypoint-initdb.d:ro
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-admin} -d ${POSTGRES_DB:-postgres}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - backend-net
+
+  # ── User Service ─────────────────────────────────────────────
+  user-service:
+    build:
+      context: ../src/user-service
+      dockerfile: Dockerfile
+    image: secure-user-service:local
+    container_name: secure-user-service
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      USER_SERVICE_PORT: 3001
+      NODE_ENV: production
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      USERS_DB_NAME: usersdb
+      USERS_DB_USER: user_svc
+      USERS_DB_PASSWORD: ${USERS_DB_PASSWORD:-users_svc_secure_pass_456}
+      JWT_SECRET: ${JWT_SECRET:-super-secret-production-quality-key-32chars}
+      JWT_ISSUER: secure-devsecops-platform
+      JWT_AUDIENCE: secure-devsecops-platform
+      JWT_EXPIRY: 15m
+      LOG_LEVEL: info
+      CORS_ALLOWED_ORIGINS: http://localhost:8080,http://localhost:3000
+    networks:
+      - backend-net
+
+  # ── Product Service ──────────────────────────────────────────
+  product-service:
+    build:
+      context: ../src/product-service
+      dockerfile: Dockerfile
+    image: secure-product-service:local
+    container_name: secure-product-service
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PRODUCT_SERVICE_PORT: 3002
+      NODE_ENV: production
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      PRODUCTS_DB_NAME: productsdb
+      PRODUCTS_DB_USER: product_svc
+      PRODUCTS_DB_PASSWORD: ${PRODUCTS_DB_PASSWORD:-products_svc_secure_pass_789}
+      LOG_LEVEL: info
+      CORS_ALLOWED_ORIGINS: http://localhost:8080,http://localhost:3000
+    networks:
+      - backend-net
+
+  # ── Order Service ────────────────────────────────────────────
+  order-service:
+    build:
+      context: ../src/order-service
+      dockerfile: Dockerfile
+    image: secure-order-service:local
+    container_name: secure-order-service
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      product-service:
+        condition: service_started
+    environment:
+      ORDER_SERVICE_PORT: 3003
+      NODE_ENV: production
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      ORDERS_DB_NAME: ordersdb
+      ORDERS_DB_USER: order_svc
+      ORDERS_DB_PASSWORD: ${ORDERS_DB_PASSWORD:-orders_svc_secure_pass_321}
+      PRODUCT_SERVICE_URL: http://product-service:3002
+      LOG_LEVEL: info
+      CORS_ALLOWED_ORIGINS: http://localhost:8080,http://localhost:3000
+    networks:
+      - backend-net
+
+  # ── API Gateway ──────────────────────────────────────────────
+  api-gateway:
+    build:
+      context: ../src/api-gateway
+      dockerfile: Dockerfile
+    image: secure-api-gateway:local
+    container_name: secure-api-gateway
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    depends_on:
+      user-service:
+        condition: service_started
+      product-service:
+        condition: service_started
+      order-service:
+        condition: service_started
+    environment:
+      API_GATEWAY_PORT: 3000
+      NODE_ENV: production
+      JWT_SECRET: ${JWT_SECRET:-super-secret-production-quality-key-32chars}
+      JWT_ISSUER: secure-devsecops-platform
+      JWT_AUDIENCE: secure-devsecops-platform
+      USER_SERVICE_URL: http://user-service:3001
+      PRODUCT_SERVICE_URL: http://product-service:3002
+      ORDER_SERVICE_URL: http://order-service:3003
+      RATE_LIMIT_WINDOW_MS: 900000
+      RATE_LIMIT_MAX_REQUESTS: 100
+      LOGIN_RATE_LIMIT_WINDOW_MS: 900000
+      LOGIN_RATE_LIMIT_MAX_REQUESTS: 10
+      LOG_LEVEL: info
+      CORS_ALLOWED_ORIGINS: http://localhost:8080,http://localhost:3000
+    networks:
+      - backend-net
+      - frontend-net
+
+  # ── Frontend (React 18 + Hardened Nginx) ─────────────────────
+  frontend:
+    build:
+      context: ../src/frontend
+      dockerfile: Dockerfile
+    image: secure-frontend:local
+    container_name: secure-frontend
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    depends_on:
+      api-gateway:
+        condition: service_started
+    networks:
+      - frontend-net
+
+networks:
+  backend-net:
+    driver: bridge
+  frontend-net:
+    driver: bridge
+
+volumes:
+  postgres_data:

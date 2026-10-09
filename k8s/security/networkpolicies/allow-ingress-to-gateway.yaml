@@ -1,0 +1,29 @@
+# ──────────────────────────────────────────────────────────────
+# k8s/security/networkpolicies/allow-ingress-to-gateway.yaml
+#
+# Threat Mitigated:
+#   - Ingress Bypass & Unauthorized Gateway Access: Ensures that the
+#     API Gateway accepts traffic exclusively from the legitimate
+#     Ingress Nginx controller, blocking direct, uninspected requests
+#     originating from untrusted pods or external namespaces.
+# ──────────────────────────────────────────────────────────────
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress-to-gateway
+  namespace: ecommerce
+spec:
+  podSelector:
+    matchLabels:
+      app: api-gateway
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+      ports:
+        - protocol: TCP
+          port: 3000

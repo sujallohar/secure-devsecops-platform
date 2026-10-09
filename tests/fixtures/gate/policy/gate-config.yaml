@@ -1,0 +1,10 @@
+
+container_gate:
+  ignore_unfixed: true
+  thresholds:
+    CRITICAL: 0
+    HIGH: 0
+    MEDIUM: 5
+    LOW: 20
+  fail_on_threshold_breach: true
+  fail_on_expired_exceptions: true

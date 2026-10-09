@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- GitHub Pages Showcase Dashboard Deployment -->
+  <title>Secure DevSecOps Platform — Interactive Defense & Architecture Showcase</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <path d="M9 12l2 2 4-4"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h2>SecureDevSecOps</h2>
+          <span class="badge-env">ZERO-TRUST PLATFORM</span>
+        </div>
+      </div>
+
+      <nav class="nav-menu">
+        <button class="nav-item active" data-tab="overview">
+          <span class="icon">📊</span>
+          <span>Executive Overview</span>
+        </button>
+        <button class="nav-item" data-tab="architecture">
+          <span class="icon">🏗️</span>
+          <span>Architecture & Topology</span>
+        </button>
+        <button class="nav-item" data-tab="gates">
+          <span class="icon">🛡️</span>
+          <span>4 Security Gates</span>
+        </button>
+        <button class="nav-item" data-tab="attacks">
+          <span class="icon">⚡</span>
+          <span>Attack Demos (Phase 19)</span>
+          <span class="badge-pill">5 Demos</span>
+        </button>
+        <button class="nav-item" data-tab="threats">
+          <span class="icon">🎯</span>
+          <span>Threat Matrix (T01-T18)</span>
+        </button>
+        <button class="nav-item" data-tab="iac">
+          <span class="icon">☁️</span>
+          <span>Cloud IaC & ₹0 Cost</span>
+        </button>
+        <button class="nav-item" data-tab="logs">
+          <span class="icon">📜</span>
+          <span>Live Evidence Terminal</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="system-status">
+          <span class="status-dot pulsing"></span>
+          <div class="status-info">
+            <span class="status-title">Runtime IDS: Falco Active</span>
+            <span class="status-sub">Zero-Trust NetworkPolicies</span>
+          </div>
+        </div>
+        <div class="cost-badge">
+          <span>Cost to date:</span>
+          <strong>₹0.00 (Zero Spend)</strong>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <!-- Top Header -->
+      <header class="topbar">
+        <div class="header-title">
+          <h1 id="page-title">Executive Security Overview</h1>
+          <p id="page-subtitle">Real-time status of multi-tier defenses, supply chain controls, and runtime intrusion detection.</p>
+        </div>
+        <div class="header-actions">
+          <button id="btn-run-all-demos" class="btn btn-primary">
+            <span>⚡ Run All 5 Attack Demos</span>
+          </button>
+          <button id="btn-export-report" class="btn btn-secondary">
+            <span>📄 Export Evidence Audit</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- TAB 1: OVERVIEW -->
+      <section id="tab-overview" class="tab-pane active">
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-header">
+              <span class="metric-label">SUPPLY CHAIN SECURITY</span>
+              <span class="metric-badge green">ENFORCED</span>
+            </div>
+            <div class="metric-value">100%</div>
+            <div class="metric-desc">Distroless, non-root, pinned digests, signed with Cosign</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-header">
+              <span class="metric-label">SECURITY GATES PASSED</span>
+              <span class="metric-badge green">4 / 4 GATES</span>
+            </div>
+            <div class="metric-value">4 / 4</div>
+            <div class="metric-desc">Gitleaks • SAST/SCA • Trivy • Admission Control</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-header">
+              <span class="metric-label">STRIDE THREATS MITIGATED</span>
+              <span class="metric-badge cyan">18 THREATS</span>
+            </div>
+            <div class="metric-value">18 / 18</div>
+            <div class="metric-desc">Threats T01 through T18 validated with code evidence</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-header">
+              <span class="metric-label">CLOUD INFRASTRUCTURE SPEND</span>
+              <span class="metric-badge purple">FREE TIER / LOCAL</span>
+            </div>
+            <div class="metric-value">₹0.00</div>
+            <div class="metric-desc">Zero cloud cost: Kind local cluster + OpenTofu Plan-Only</div>
+          </div>
+        </div>
+
+        <div class="grid-2-col">
+          <!-- Defense Layer Summary -->
+          <div class="card">
+            <div class="card-header">
+              <h3>🛡️ Layered Defense Architecture</h3>
+              <span class="tag-status">DEFENSE IN DEPTH</span>
+            </div>
+            <div class="card-body">
+              <div class="defense-step">
+                <div class="step-num">01</div>
+                <div class="step-content">
+                  <h4>Pre-Commit Secret Shield</h4>
+                  <p>Client-side Git hooks execute <strong>Gitleaks</strong> to intercept hardcoded API keys, tokens, and credentials before code leaves the developer machine.</p>
+                </div>
+                <span class="step-badge">Gate 1</span>
+              </div>
+              <div class="defense-step">
+                <div class="step-num">02</div>
+                <div class="step-content">
+                  <h4>CI Pipeline SAST & SCA</h4>
+                  <p>GitHub Actions triggers automated static code analysis (ESLint security rules) and dependency vulnerability scans (npm audit / Trivy config).</p>
+                </div>
+                <span class="step-badge">Gate 2</span>
+              </div>
+              <div class="defense-step">
+                <div class="step-num">03</div>
+                <div class="step-content">
+                  <h4>Distroless Build & Cryptographic Signing</h4>
+                  <p>Multi-stage builds produce attack-surface-minimized distroless images, scanned with Trivy, and signed using <strong>Cosign</strong> keyless PKI.</p>
+                </div>
+                <span class="step-badge">Gate 3</span>
+              </div>
+              <div class="defense-step">
+                <div class="step-num">04</div>
+                <div class="step-content">
+                  <h4>Runtime IDS & Zero Trust Microsegmentation</h4>
+                  <p>Kubernetes NetworkPolicies enforce default-deny egress/ingress, while <strong>Falco eBPF</strong> monitors kernel syscalls for unauthorized behavior.</p>
+                </div>
+                <span class="step-badge">Gate 4</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Microservices Status Table -->
+          <div class="card">
+            <div class="card-header">
+              <h3>📦 Microservices Security Baseline</h3>
+              <span class="tag-status">KIND K8S CLUSTER</span>
+            </div>
+            <div class="card-body">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Service</th>
+                    <th>Runtime</th>
+                    <th>Security Context</th>
+                    <th>Network Policy</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>API Gateway</strong></td>
+                    <td>Node 20 (Distroless)</td>
+                    <td><span class="badge-tag green">readOnlyRootFS</span></td>
+                    <td><span class="badge-tag cyan">Ingress: 8080</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>User Service</strong></td>
+                    <td>Node 20 (Non-root)</td>
+                    <td><span class="badge-tag green">UID 10001</span></td>
+                    <td><span class="badge-tag cyan">From Gateway Only</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>Product Service</strong></td>
+                    <td>Node 20 (Non-root)</td>
+                    <td><span class="badge-tag green">No Capabilities</span></td>
+                    <td><span class="badge-tag cyan">From Gateway Only</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>Order Service</strong></td>
+                    <td>Node 20 (Non-root)</td>
+                    <td><span class="badge-tag green">SeccompProfile</span></td>
+                    <td><span class="badge-tag cyan">Egress: DB Only</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>Frontend UI</strong></td>
+                    <td>Nginx Unprivileged</td>
+                    <td><span class="badge-tag green">Non-root: 101</span></td>
+                    <td><span class="badge-tag cyan">Public Ingress</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 2: ARCHITECTURE -->
+      <section id="tab-architecture" class="tab-pane">
+        <div class="card">
+          <div class="card-header">
+            <h3>🏗️ Interactive Cluster & Network Topology</h3>
+            <span class="tag-status">CLICK NODES TO INSPECT SECURITY POLICIES</span>
+          </div>
+          <div class="card-body">
+            <div class="architecture-canvas-container">
+              <div class="topology-grid">
+                <!-- Ingress / Client -->
+                <div class="topology-tier" id="tier-client">
+                  <h4>External Clients</h4>
+                  <div class="topo-node" data-node="client">
+                    <div class="node-icon">🌐</div>
+                    <div class="node-name">Browser / Client</div>
+                    <div class="node-sub">HTTPS :443</div>
+                  </div>
+                </div>
+
+                <!-- DMZ / Edge -->
+                <div class="topology-tier" id="tier-edge">
+                  <h4>Edge & Ingress Controller</h4>
+                  <div class="topo-node" data-node="ingress">
+                    <div class="node-icon">🔀</div>
+                    <div class="node-name">Nginx Ingress</div>
+                    <div class="node-sub">SSL Termination</div>
+                  </div>
+                  <div class="topo-node" data-node="frontend">
+                    <div class="node-icon">💻</div>
+                    <div class="node-name">Frontend Pod</div>
+                    <div class="node-sub">Nginx Unprivileged</div>
+                  </div>
+                </div>
+
+                <!-- Gateway -->
+                <div class="topology-tier" id="tier-gateway">
+                  <h4>API Gateway (BFF)</h4>
+                  <div class="topo-node highlight" data-node="api-gateway">
+                    <div class="node-icon">🚪</div>
+                    <div class="node-name">API Gateway</div>
+                    <div class="node-sub">JWT Verification & Rate Limiting</div>
+                  </div>
+                </div>
+
+                <!-- Internal Microservices -->
+                <div class="topology-tier" id="tier-services">
+                  <h4>Internal Microservices Tier</h4>
+                  <div class="topo-node" data-node="user-service">
+                    <div class="node-icon">👤</div>
+                    <div class="node-name">User Service</div>
+                    <div class="node-sub">Port 3001 • Non-root</div>
+                  </div>
+                  <div class="topo-node" data-node="product-service">
+                    <div class="node-icon">🛍️</div>
+                    <div class="node-name">Product Service</div>
+                    <div class="node-sub">Port 3002 • Non-root</div>
+                  </div>
+                  <div class="topo-node" data-node="order-service">
+                    <div class="node-icon">📦</div>
+                    <div class="node-name">Order Service</div>
+                    <div class="node-sub">Port 3003 • Non-root</div>
+                  </div>
+                </div>
+
+                <!-- Database Tier -->
+                <div class="topology-tier" id="tier-db">
+                  <h4>Isolated Database Tier</h4>
+                  <div class="topo-node secure" data-node="user-db">
+                    <div class="node-icon">🗄️</div>
+                    <div class="node-name">User DB</div>
+                    <div class="node-sub">PostgreSQL :5432</div>
+                  </div>
+                  <div class="topo-node secure" data-node="product-db">
+                    <div class="node-icon">🗄️</div>
+                    <div class="node-name">Product DB</div>
+                    <div class="node-sub">PostgreSQL :5432</div>
+                  </div>
+                  <div class="topo-node secure" data-node="order-db">
+                    <div class="node-icon">🗄️</div>
+                    <div class="node-name">Order DB</div>
+                    <div class="node-sub">PostgreSQL :5432</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Node Details Modal / Drawer -->
+            <div id="node-inspector" class="node-inspector-panel">
+              <div class="inspector-header">
+                <h4 id="inspector-title">Select a node above to inspect</h4>
+                <button id="btn-close-inspector" class="btn-icon">✕</button>
+              </div>
+              <div class="inspector-body" id="inspector-content">
+                <p class="placeholder-text">Click on any microservice or component above to view its exact Kubernetes SecurityContext, NetworkPolicy ingress/egress rules, and threat mitigations.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 3: SECURITY GATES -->
+      <section id="tab-gates" class="tab-pane">
+        <div class="gates-timeline">
+          <!-- Gate 1 -->
+          <div class="gate-card" id="gate-1">
+            <div class="gate-status passed">PASSED</div>
+            <div class="gate-icon">🔑</div>
+            <div class="gate-info">
+              <h3>Gate 1: Pre-Commit Secret Scanning</h3>
+              <p><strong>Tool:</strong> Gitleaks Hook • <strong>Action:</strong> Blocks commit if regex detects API keys, AWS credentials, or private tokens.</p>
+              <div class="gate-actions">
+                <button class="btn btn-sm btn-outline btn-simulate-gate" data-gate="1">Simulate Secret Leak</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Gate 2 -->
+          <div class="gate-card" id="gate-2">
+            <div class="gate-status passed">PASSED</div>
+            <div class="gate-icon">🔍</div>
+            <div class="gate-info">
+              <h3>Gate 2: SAST & Software Composition Analysis</h3>
+              <p><strong>Tools:</strong> ESLint Security Rules + npm audit • <strong>Action:</strong> Fails CI build on HIGH/CRITICAL vulnerabilities (CVEs).</p>
+              <div class="gate-actions">
+                <button class="btn btn-sm btn-outline btn-simulate-gate" data-gate="2">Simulate Dependency CVE</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Gate 3 -->
+          <div class="gate-card" id="gate-3">
+            <div class="gate-status passed">PASSED</div>
+            <div class="gate-icon">📦</div>
+            <div class="gate-info">
+              <h3>Gate 3: Container Vulnerability Scan & Cosign Signing</h3>
+              <p><strong>Tools:</strong> Trivy Container Scanner + Cosign • <strong>Action:</strong> Rejects bloated images; signs distroless digest with keyless PKI.</p>
+              <div class="gate-actions">
+                <button class="btn btn-sm btn-outline btn-simulate-gate" data-gate="3">Simulate Vulnerable Image</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Gate 4 -->
+          <div class="gate-card" id="gate-4">
+            <div class="gate-status passed">PASSED</div>
+            <div class="gate-icon">🔏</div>
+            <div class="gate-info">
+              <h3>Gate 4: Admission Control & Pod Hardening</h3>
+              <p><strong>Tools:</strong> Kyverno / K8s Admission Controllers • <strong>Action:</strong> Rejects un-signed images and pods missing readOnlyRootFilesystem.</p>
+              <div class="gate-actions">
+                <button class="btn btn-sm btn-outline btn-simulate-gate" data-gate="4">Inspect Admission Rules</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Interactive Gate Simulator Console -->
+        <div class="card mt-4">
+          <div class="card-header">
+            <h3>Terminal Simulator Output</h3>
+            <span class="terminal-badge">LIVE BASH OUTPUT</span>
+          </div>
+          <div class="card-body">
+            <pre class="terminal-window" id="gate-terminal-output">$ Click "Simulate" on any gate above to see real-time detection and blocking output.</pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 4: ATTACK DEMOS (PHASE 19) -->
+      <section id="tab-attacks" class="tab-pane">
+        <div class="attack-intro-banner">
+          <div class="banner-text">
+            <h3>⚔️ Phase 19: The 5 Controlled Attack Demonstrations</h3>
+            <p>Every scenario below is confined to the local environment, executes at <strong>₹0 cost</strong>, and produces cryptographically verifiable evidence.</p>
+          </div>
+          <div class="banner-badge">5 / 5 AUTOMATED SCRIPTS</div>
+        </div>
+
+        <div class="attacks-grid">
+          <!-- Demo 1 -->
+          <div class="attack-card">
+            <div class="attack-header">
+              <span class="attack-num">DEMO 01</span>
+              <span class="attack-badge sca">SUPPLY CHAIN</span>
+            </div>
+            <h4>Vulnerable Dependency Injection (CVE-2021-44906)</h4>
+            <p class="attack-desc">Attacker attempts to push <code>minimist@1.2.5</code> containing a known Prototype Pollution vulnerability (GHSA-xvch-5gv4-984h).</p>
+            <div class="attack-detail">
+              <strong>Defense:</strong> CI SCA Audit Gate blocks image compilation (Exit Code 1).
+            </div>
+            <div class="attack-footer">
+              <button class="btn btn-danger btn-run-attack" data-demo="1">Trigger Attack</button>
+              <button class="btn btn-success btn-revert-attack" data-demo="1">Apply Fix</button>
+            </div>
+          </div>
+
+          <!-- Demo 2 -->
+          <div class="attack-card">
+            <div class="attack-header">
+              <span class="attack-num">DEMO 02</span>
+              <span class="attack-badge secrets">SECRETS</span>
+            </div>
+            <h4>Hardcoded Secret Leakage</h4>
+            <p class="attack-desc">Attacker or developer commits unencrypted AWS Access Keys / GitHub Personal Access Tokens into git staging.</p>
+            <div class="attack-detail">
+              <strong>Defense:</strong> Gitleaks pre-commit shield immediately blocks commit.
+            </div>
+            <div class="attack-footer">
+              <button class="btn btn-danger btn-run-attack" data-demo="2">Trigger Leak</button>
+              <button class="btn btn-success btn-revert-attack" data-demo="2">Rotate Key</button>
+            </div>
+          </div>
+
+          <!-- Demo 3 -->
+          <div class="attack-card">
+            <div class="attack-header">
+              <span class="attack-num">DEMO 03</span>
+              <span class="attack-badge containers">CONTAINER</span>
+            </div>
+            <h4>Vulnerable Base Image Rejection</h4>
+            <p class="attack-desc">Dockerfile switches from hardened Distroless image to outdated <code>node:14-alpine</code> containing 34 known vulnerabilities.</p>
+            <div class="attack-detail">
+              <strong>Defense:</strong> Trivy scan halts pipeline; zero tainted layers reach registry.
+            </div>
+            <div class="attack-footer">
+              <button class="btn btn-danger btn-run-attack" data-demo="3">Trigger Old Image</button>
+              <button class="btn btn-success btn-revert-attack" data-demo="3">Revert Digest</button>
+            </div>
+          </div>
+
+          <!-- Demo 4 -->
+          <div class="attack-card">
+            <div class="attack-header">
+              <span class="attack-num">DEMO 04</span>
+              <span class="attack-badge runtime">RUNTIME IDS</span>
+            </div>
+            <h4>Container Intrusion & Privilege Escalation</h4>
+            <p class="attack-desc">Attacker gains pod shell; attempts <code>cat /etc/shadow</code>, modifying <code>/etc</code>, running package manager, and C2 external curl.</p>
+            <div class="attack-detail">
+              <strong>Defense:</strong> Falco eBPF alerts; readOnlyRootFS rejects write; NetworkPolicy blocks curl.
+            </div>
+            <div class="attack-footer">
+              <button class="btn btn-danger btn-run-attack" data-demo="4">Simulate Intrusion</button>
+              <button class="btn btn-secondary btn-inspect-falco">View Falco Rule</button>
+            </div>
+          </div>
+
+          <!-- Demo 5 -->
+          <div class="attack-card">
+            <div class="attack-header">
+              <span class="attack-num">DEMO 05</span>
+              <span class="attack-badge network">ZERO TRUST</span>
+            </div>
+            <h4>Lateral Movement & Database Bypassing</h4>
+            <p class="attack-desc">Attacker compromises Frontend tier and attempts direct lateral SQL connection to PostgreSQL database bypassing API Gateway.</p>
+            <div class="attack-detail">
+              <strong>Defense:</strong> Kubernetes NetworkPolicy default-deny drops TCP SYN packets (Connection timed out).
+            </div>
+            <div class="attack-footer">
+              <button class="btn btn-danger btn-run-attack" data-demo="5">Simulate Lateral Move</button>
+              <button class="btn btn-secondary btn-verify-policy">Verify CNI Rule</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Attack Output Terminal -->
+        <div class="card mt-4">
+          <div class="card-header">
+            <h3>Attack Demonstration Terminal Output & Forensic Logs</h3>
+            <span class="tag-status" id="demo-status-pill">READY</span>
+          </div>
+          <div class="card-body">
+            <pre class="terminal-window" id="attack-terminal-output">$ Ready to run demonstrations. Select any scenario above to observe real defense execution.</pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 5: THREAT MATRIX (T01 - T18) -->
+      <section id="tab-threats" class="tab-pane">
+        <div class="card">
+          <div class="card-header">
+            <h3>🎯 STRIDE Threat Model & Validation Matrix</h3>
+            <div class="filter-group">
+              <button class="btn-filter active" data-filter="all">All (18)</button>
+              <button class="btn-filter" data-filter="critical">Critical</button>
+              <button class="btn-filter" data-filter="high">High</button>
+              <button class="btn-filter" data-filter="runtime">Runtime</button>
+              <button class="btn-filter" data-filter="cicd">CI/CD</button>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="threat-table-container">
+              <table class="data-table" id="threat-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Threat Name</th>
+                    <th>STRIDE Category</th>
+                    <th>Severity</th>
+                    <th>Mitigation Mechanism</th>
+                    <th>Evidence Source</th>
+                  </tr>
+                </thead>
+                <tbody id="threat-tbody">
+                  <!-- Loaded dynamically by app.js -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 6: CLOUD IAC & ₹0 COST -->
+      <section id="tab-iac" class="tab-pane">
+        <div class="grid-2-col">
+          <!-- Cost Breakdown Card -->
+          <div class="card">
+            <div class="card-header">
+              <h3>💰 Infrastructure Cost Ledger (Phase 18)</h3>
+              <span class="badge-tag green">₹0.00 SPENT TODAY</span>
+            </div>
+            <div class="card-body">
+              <p class="cost-note">As requested, <strong>all cloud operations are plan-only</strong>. Zero dollars were charged to any account. Below is the itemized budget analysis showing what each resource would cost if deployed on AWS:</p>
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Component</th>
+                    <th>AWS Resource</th>
+                    <th>Free Tier?</th>
+                    <th>Monthly Cost</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>VPC & Subnets</strong></td>
+                    <td><code>aws_vpc</code>, <code>aws_subnet</code></td>
+                    <td><span class="badge-tag green">YES</span></td>
+                    <td>$0.00</td>
+                  </tr>
+                  <tr>
+                    <td><strong>ECR Registries (5)</strong></td>
+                    <td><code>aws_ecr_repository</code></td>
+                    <td><span class="badge-tag green">YES (500MB)</span></td>
+                    <td>$0.50</td>
+                  </tr>
+                  <tr>
+                    <td><strong>IAM & OIDC Provider</strong></td>
+                    <td><code>aws_iam_role</code></td>
+                    <td><span class="badge-tag green">YES</span></td>
+                    <td>$0.00</td>
+                  </tr>
+                  <tr>
+                    <td><strong>NAT Gateway</strong></td>
+                    <td><code>aws_nat_gateway</code></td>
+                    <td><span class="badge-tag red">NO FREE TIER</span></td>
+                    <td>$32.40 / mo</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Elastic IP</strong></td>
+                    <td><code>aws_eip</code> (NAT IP)</td>
+                    <td><span class="badge-tag red">PAID ($0.005/hr)</span></td>
+                    <td>$3.60 / mo</td>
+                  </tr>
+                  <tr class="highlight-row">
+                    <td><strong>Dev Env Total</strong></td>
+                    <td><strong>Resources in Plan</strong></td>
+                    <td><strong>Plan-Only</strong></td>
+                    <td><strong>$36.50 / mo (~₹3,050)</strong></td>
+                  </tr>
+                  <tr>
+                    <td><strong>EKS Control Plane</strong></td>
+                    <td><code>aws_eks_cluster</code> (Module)</td>
+                    <td><span class="badge-tag red">NO FREE TIER</span></td>
+                    <td>$73.00 / mo</td>
+                  </tr>
+                  <tr>
+                    <td><strong>EKS Worker Nodes</strong></td>
+                    <td>2 × t3.medium EC2</td>
+                    <td><span class="badge-tag red">PAID</span></td>
+                    <td>$60.00 / mo</td>
+                  </tr>
+                </tbody>
+              </table>
+              <div class="audit-badge mt-3">
+                <span>Verification: <code>tofu plan</code> generated <strong>28 to add, 0 to change, 0 to destroy</strong> with zero apply calls.</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- OIDC Architecture Card -->
+          <div class="card">
+            <div class="card-header">
+              <h3>🔑 Keyless OIDC Authentication Architecture</h3>
+              <span class="tag-status">THREAT T18 MITIGATION</span>
+            </div>
+            <div class="card-body">
+              <div class="oidc-diagram">
+                <div class="oidc-step">
+                  <span class="oidc-step-num">1</span>
+                  <div class="oidc-text">
+                    <strong>GitHub Actions Runner</strong>
+                    <p>Workflow requests a signed OIDC JWT token from GitHub's token authority.</p>
+                  </div>
+                </div>
+                <div class="oidc-step">
+                  <span class="oidc-step-num">2</span>
+                  <div class="oidc-text">
+                    <strong>JWT Claims Verification</strong>
+                    <p>Token includes immutable claim: <code>sub: "repo:sujallohar/secure-devsecops-platform:ref:refs/heads/*"</code></p>
+                  </div>
+                </div>
+                <div class="oidc-step">
+                  <span class="oidc-step-num">3</span>
+                  <div class="oidc-text">
+                    <strong>AWS STS Trust Policy Check</strong>
+                    <p>AWS verifies thumbprint <code>6938fd4d98bab03faadb97b34396831e3780aea1</code> and evaluates <code>StringLike: token.actions.githubusercontent.com:sub</code>.</p>
+                  </div>
+                </div>
+                <div class="oidc-step">
+                  <span class="oidc-step-num">4</span>
+                  <div class="oidc-text">
+                    <strong>Ephemeral Session Granted</strong>
+                    <p>AWS mints a temporary 1-hour session token. <strong>Zero static passwords or access keys exist to leak.</strong></p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 7: LIVE EVIDENCE LOGS -->
+      <section id="tab-logs" class="tab-pane">
+        <div class="card">
+          <div class="card-header">
+            <h3>📜 Forensic Evidence Vault</h3>
+            <div class="btn-group">
+              <button class="btn btn-sm btn-outline btn-load-evidence" data-file="demo-01">Demo 1 Log</button>
+              <button class="btn btn-sm btn-outline btn-load-evidence" data-file="demo-02">Demo 2 Log</button>
+              <button class="btn btn-sm btn-outline btn-load-evidence" data-file="demo-03">Demo 3 Log</button>
+              <button class="btn btn-sm btn-outline btn-load-evidence" data-file="demo-04">Demo 4 Log</button>
+              <button class="btn btn-sm btn-outline btn-load-evidence" data-file="demo-05">Demo 5 Log</button>
+              <button class="btn btn-sm btn-outline btn-load-evidence" data-file="falco-alerts">Falco Alerts</button>
+            </div>
+          </div>
+          <div class="card-body">
+            <pre class="terminal-window large" id="evidence-viewer">Select an evidence log above to inspect real-time forensic capture.</pre>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

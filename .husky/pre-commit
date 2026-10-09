@@ -25,7 +25,8 @@ echo "🔍 Running gitleaks on staged changes..."
 
 # --staged: only scan what is about to be committed
 # --verbose: show details of any findings
-gitleaks protect --staged --verbose
+# --config: use project-specific custom rules and allowlists
+gitleaks protect --staged --verbose --config security/gitleaks/.gitleaks.toml
 
 # If gitleaks finds a secret, it exits non-zero and blocks the commit.
 # To bypass in an emergency (NOT recommended):

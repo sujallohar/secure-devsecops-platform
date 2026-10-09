@@ -1,0 +1,33 @@
+# ──────────────────────────────────────────────────────────────
+# k8s/base/quota-limits.yaml — ResourceQuota & LimitRange
+# Purpose: Prevent runaway resource consumption, noisy-neighbor
+#          starvation, and unbounded container scheduling in ecommerce.
+# ──────────────────────────────────────────────────────────────
+
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: ecommerce-quota
+  namespace: ecommerce
+spec:
+  hard:
+    requests.cpu: "2"
+    requests.memory: 2Gi
+    limits.cpu: "4"
+    limits.memory: 4Gi
+    pods: "20"
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: ecommerce-limit-range
+  namespace: ecommerce
+spec:
+  limits:
+    - default:
+        cpu: 500m
+        memory: 512Mi
+      defaultRequest:
+        cpu: 50m
+        memory: 64Mi
+      type: Container
